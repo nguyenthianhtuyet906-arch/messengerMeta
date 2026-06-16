@@ -1,38 +1,81 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useRef, useState } from "react"
+import { useSearchParams } from "next/navigation"
+import useSWR, { mutate } from "swr"
 import { Search, Send, Phone, Video, Info, Smile } from "lucide-react"
-import { conversations as initialConversations, type Conversation, type Message } from "@/lib/chat-data"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Input } from "@/components/ui/input"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { cn } from "@/lib/utils"
 
+type Conversation = {
+  id: string
+  name: string
+  initials: string
+  lastMessage: string
+  time: string
+  unread: number
+  online: boolean
+}
+
+type Message = {
+  id: string
+  fromMe: boolean
+  text: string
+  time: string
+  createdAt: number
+}
+
+const fetcher = (url: string) => fetch(url).then((r) => r.json())
+
 export function Messenger() {
-  const [convos, setConvos] = useState<Conversation[]>(initialConversations)
-  const [activeId, setActiveId] = useState<string>(initialConversations[0].id)
+  const searchParams = useSearchParams()
+  const initialUser = searchParams.get("u")
+  const [activeId, setActiveId] = useState<string | null>(initialUser)
   const [draft, setDraft] = useState("")
   const [query, setQuery] = useState("")
+  const scrollRef = useRef<HTMLDivElement>(null)
 
-  const active = convos.find((c) => c.id === activeId)!
+  const { data: convoData } = useSWR<{ conversations: Conversation[] }>(
+    "/api/conversations",
+    fetcher,
+    { refreshInterval: 4000 },
+  )
+  const convos = convoData?.conversations ?? []
 
+  // Default to first conversation once loaded
+  useEffect(() => {
+    if (!activeId && convos.length > 0) {
+      setActiveId(convos[0].id)
+    }
+  }, [activeId, convos])
+
+  const { data: msgData } = useSWR<{ messages: Message[] }>(
+    activeId ? `/api/messages/${activeId}` : null,
+    fetcher,
+    { refreshInterval: 3000 },
+  )
+  const messages = msgData?.messages ?? []
+
+  const active = convos.find((c) => c.id === activeId) ?? null
   const filtered = convos.filter((c) => c.name.toLowerCase().includes(query.toLowerCase()))
 
-  function sendMessage() {
+  useEffect(() => {
+    scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight })
+  }, [messages.length, activeId])
+
+  async function sendMessage() {
     const text = draft.trim()
-    if (!text) return
-    const newMsg: Message = {
-      id: `m${Date.now()}`,
-      fromMe: true,
-      text,
-      time: new Date().toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit" }),
-    }
-    setConvos((prev) =>
-      prev.map((c) =>
-        c.id === activeId ? { ...c, messages: [...c.messages, newMsg], lastMessage: text, time: "Vừa xong" } : c,
-      ),
-    )
+    if (!text || !activeId) return
     setDraft("")
+    await fetch(`/api/messages/${activeId}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ text }),
+    })
+    mutate(`/api/messages/${activeId}`)
+    mutate("/api/conversations")
   }
 
   return (
@@ -99,7 +142,9 @@ export function Messenger() {
               )
             })}
             {filtered.length === 0 && (
-              <li className="px-4 py-8 text-center text-sm text-muted-foreground">Không tìm thấy đoạn chat nào.</li>
+              <li className="px-4 py-8 text-center text-sm text-muted-foreground">
+                {convos.length === 0 ? "Chưa có người dùng nào khác." : "Không tìm thấy đoạn chat nào."}
+              </li>
             )}
           </ul>
         </ScrollArea>
@@ -107,88 +152,95 @@ export function Messenger() {
 
       {/* Chat window */}
       <div className="hidden flex-1 flex-col md:flex">
-        {/* Header */}
-        <header className="flex items-center justify-between border-b border-border px-5 py-3">
-          <div className="flex items-center gap-3">
-            <div className="relative">
-              <Avatar className="h-10 w-10">
-                <AvatarFallback className="bg-primary/10 text-primary font-bold">{active.initials}</AvatarFallback>
-              </Avatar>
-              {active.online && (
-                <span className="absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full border-2 border-card bg-green-500" />
-              )}
-            </div>
-            <div>
-              <h2 className="font-bold leading-tight">{active.name}</h2>
-              <p className="text-xs text-muted-foreground">{active.online ? "Đang hoạt động" : "Hoạt động gần đây"}</p>
-            </div>
-          </div>
-          <div className="flex items-center gap-1 text-primary">
-            <button className="flex h-9 w-9 items-center justify-center rounded-full transition-colors hover:bg-accent" aria-label="Gọi thoại">
-              <Phone className="h-5 w-5" />
-            </button>
-            <button className="flex h-9 w-9 items-center justify-center rounded-full transition-colors hover:bg-accent" aria-label="Gọi video">
-              <Video className="h-5 w-5" />
-            </button>
-            <button className="flex h-9 w-9 items-center justify-center rounded-full transition-colors hover:bg-accent" aria-label="Thông tin">
-              <Info className="h-5 w-5" />
-            </button>
-          </div>
-        </header>
-
-        {/* Messages */}
-        <ScrollArea className="flex-1 px-5 py-4">
-          <div className="flex flex-col gap-2">
-            {active.messages.map((m) => (
-              <div key={m.id} className={cn("flex items-end gap-2", m.fromMe ? "justify-end" : "justify-start")}>
-                {!m.fromMe && (
-                  <Avatar className="h-7 w-7 shrink-0">
-                    <AvatarFallback className="bg-primary/10 text-primary text-xs font-bold">
-                      {active.initials}
-                    </AvatarFallback>
+        {active ? (
+          <>
+            <header className="flex items-center justify-between border-b border-border px-5 py-3">
+              <div className="flex items-center gap-3">
+                <div className="relative">
+                  <Avatar className="h-10 w-10">
+                    <AvatarFallback className="bg-primary/10 text-primary font-bold">{active.initials}</AvatarFallback>
                   </Avatar>
-                )}
-                <div
-                  className={cn(
-                    "max-w-[70%] rounded-3xl px-4 py-2 text-sm leading-relaxed",
-                    m.fromMe ? "bg-primary text-primary-foreground" : "bg-muted text-foreground",
-                  )}
-                >
-                  {m.text}
+                </div>
+                <div>
+                  <h2 className="font-bold leading-tight">{active.name}</h2>
+                  <p className="text-xs text-muted-foreground">Nhấn để xem thông tin</p>
                 </div>
               </div>
-            ))}
-          </div>
-        </ScrollArea>
+              <div className="flex items-center gap-1 text-primary">
+                <button className="flex h-9 w-9 items-center justify-center rounded-full transition-colors hover:bg-accent" aria-label="Gọi thoại">
+                  <Phone className="h-5 w-5" />
+                </button>
+                <button className="flex h-9 w-9 items-center justify-center rounded-full transition-colors hover:bg-accent" aria-label="Gọi video">
+                  <Video className="h-5 w-5" />
+                </button>
+                <button className="flex h-9 w-9 items-center justify-center rounded-full transition-colors hover:bg-accent" aria-label="Thông tin">
+                  <Info className="h-5 w-5" />
+                </button>
+              </div>
+            </header>
 
-        {/* Composer */}
-        <div className="flex items-center gap-2 border-t border-border px-5 py-3">
-          <div className="relative flex-1">
-            <Input
-              value={draft}
-              onChange={(e) => setDraft(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") sendMessage()
-              }}
-              placeholder="Aa"
-              className="rounded-full border-0 bg-muted pr-10 focus-visible:ring-2 focus-visible:ring-ring"
-            />
-            <button
-              className="absolute right-2 top-1/2 -translate-y-1/2 text-primary transition-colors hover:text-primary/80"
-              aria-label="Biểu cảm"
-            >
-              <Smile className="h-5 w-5" />
-            </button>
+            <div ref={scrollRef} className="flex-1 overflow-y-auto px-5 py-4">
+              <div className="flex flex-col gap-2">
+                {messages.length === 0 && (
+                  <p className="py-8 text-center text-sm text-muted-foreground">
+                    Chưa có tin nhắn. Hãy gửi lời chào đầu tiên!
+                  </p>
+                )}
+                {messages.map((m) => (
+                  <div key={m.id} className={cn("flex items-end gap-2", m.fromMe ? "justify-end" : "justify-start")}>
+                    {!m.fromMe && (
+                      <Avatar className="h-7 w-7 shrink-0">
+                        <AvatarFallback className="bg-primary/10 text-primary text-xs font-bold">
+                          {active.initials}
+                        </AvatarFallback>
+                      </Avatar>
+                    )}
+                    <div
+                      className={cn(
+                        "max-w-[70%] rounded-3xl px-4 py-2 text-sm leading-relaxed",
+                        m.fromMe ? "bg-primary text-primary-foreground" : "bg-muted text-foreground",
+                      )}
+                    >
+                      {m.text}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2 border-t border-border px-5 py-3">
+              <div className="relative flex-1">
+                <Input
+                  value={draft}
+                  onChange={(e) => setDraft(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") sendMessage()
+                  }}
+                  placeholder="Aa"
+                  className="rounded-full border-0 bg-muted pr-10 focus-visible:ring-2 focus-visible:ring-ring"
+                />
+                <button
+                  className="absolute right-2 top-1/2 -translate-y-1/2 text-primary transition-colors hover:text-primary/80"
+                  aria-label="Biểu cảm"
+                >
+                  <Smile className="h-5 w-5" />
+                </button>
+              </div>
+              <button
+                onClick={sendMessage}
+                disabled={!draft.trim()}
+                className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground transition-opacity hover:opacity-90 disabled:opacity-40"
+                aria-label="Gửi tin nhắn"
+              >
+                <Send className="h-5 w-5" />
+              </button>
+            </div>
+          </>
+        ) : (
+          <div className="flex flex-1 items-center justify-center text-muted-foreground">
+            Chọn một đoạn chat để bắt đầu
           </div>
-          <button
-            onClick={sendMessage}
-            disabled={!draft.trim()}
-            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground transition-opacity hover:opacity-90 disabled:opacity-40"
-            aria-label="Gửi tin nhắn"
-          >
-            <Send className="h-5 w-5" />
-          </button>
-        </div>
+        )}
       </div>
     </div>
   )
