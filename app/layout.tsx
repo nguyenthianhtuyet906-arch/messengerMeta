@@ -1,7 +1,6 @@
 import { Analytics } from '@vercel/analytics/next'
 import type { Metadata, Viewport } from 'next'
 import { Geist, Geist_Mono } from 'next/font/google'
-import { Sidebar } from '@/components/sidebar'
 import './globals.css'
 
 const geistSans = Geist({ variable: '--font-geist-sans', subsets: ['latin'] })
@@ -29,10 +28,7 @@ export default function RootLayout({
   return (
     <html lang="vi" className={`${geistSans.variable} ${geistMono.variable} bg-background`}>
       <body className="font-sans antialiased">
-        <div className="flex h-dvh w-full overflow-hidden bg-background text-foreground">
-          <Sidebar />
-          <main className="flex-1 overflow-hidden">{children}</main>
-        </div>
+        {children}
         {process.env.NODE_ENV === 'production' && <Analytics />}
       </body>
     </html>
