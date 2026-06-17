@@ -2,6 +2,7 @@ import { Analytics } from '@vercel/analytics/next'
 import type { Metadata, Viewport } from 'next'
 import { Geist, Geist_Mono } from 'next/font/google'
 import { Sidebar } from '@/components/sidebar'
+import { Providers } from '@/components/providers'
 import './globals.css'
 
 const geistSans = Geist({ variable: '--font-geist-sans', subsets: ['latin'] })
@@ -11,7 +12,7 @@ const geistMono = Geist_Mono({
 })
 
 export const metadata: Metadata = {
-  title: 'Chatly — Nhắn tin trực tuyến',
+  title: 'EtsyChat — Nhắn tin trực tuyến',
   description: 'Ứng dụng chat đơn giản, nhanh và đẹp.',
   generator: 'v0.app',
 }
@@ -29,10 +30,12 @@ export default function RootLayout({
   return (
     <html lang="vi" className={`${geistSans.variable} ${geistMono.variable} bg-background`}>
       <body className="font-sans antialiased">
-        <div className="flex h-dvh w-full overflow-hidden bg-background text-foreground">
-          <Sidebar />
-          <main className="flex-1 overflow-hidden">{children}</main>
-        </div>
+        <Providers>
+          <div className="flex h-dvh w-full overflow-hidden bg-background text-foreground">
+            <Sidebar />
+            <main className="flex-1 overflow-hidden">{children}</main>
+          </div>
+        </Providers>
         {process.env.NODE_ENV === 'production' && <Analytics />}
       </body>
     </html>
