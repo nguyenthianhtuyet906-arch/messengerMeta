@@ -1,0 +1,40 @@
+import type { Collection, Db } from "mongodb";
+import clientPromise from "@/lib/mongodb-client";
+import type { ConversationDoc, MessageDoc } from "@/lib/types/etsy";
+import { ensureIndexes } from "@/lib/db/indexes";
+
+// Lazy ensure index một lần cho mỗi process (cache global cho dev hot-reload).
+declare global {
+  // eslint-disable-next-line no-var
+  var _indexesEnsured: Promise<void> | undefined;
+}
+
+// Tên DB: ưu tiên env MONGODB_DB, mặc định "meta_local"
+// (không phụ thuộc default "test" của connection string).
+const DB_NAME = process.env.MONGODB_DB || "meta_local";
+
+export async function getDb(): Promise<Db> {
+  const client = await clientPromise;
+  const db = client.db(DB_NAME);
+
+  if (!global._indexesEnsured) {
+    global._indexesEnsured = ensureIndexes(db).catch((err) => {
+      // Reset để lần sau thử lại nếu tạo index thất bại.
+      global._indexesEnsured = undefined;
+      throw err;
+    });
+  }
+  await global._indexesEnsured;
+
+  return db;
+}
+
+export async function getConversationsCollection(): Promise<Collection<ConversationDoc>> {
+  const db = await getDb();
+  return db.collection<ConversationDoc>("conversations");
+}
+
+export async function getMessagesCollection(): Promise<Collection<MessageDoc>> {
+  const db = await getDb();
+  return db.collection<MessageDoc>("messages");
+}

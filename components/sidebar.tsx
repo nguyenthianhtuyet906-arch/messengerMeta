@@ -2,6 +2,7 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
+import { useEffect } from "react"
 import { LayoutDashboard, LogOut, MessageCircle, Settings, MessagesSquare } from "lucide-react"
 import { signOut, useSession } from "next-auth/react"
 import { cn } from "@/lib/utils"
@@ -14,7 +15,13 @@ const navItems = [
 
 export function Sidebar() {
   const pathname = usePathname()
-  const { data: session } = useSession()
+  const { data: session, status } = useSession()
+
+  useEffect(() => {
+    if (status === "unauthenticated" && pathname !== "/login") {
+      signOut({ redirectTo: "/login" })
+    }
+  }, [status, pathname])
 
   if (pathname === "/login") return null
 
