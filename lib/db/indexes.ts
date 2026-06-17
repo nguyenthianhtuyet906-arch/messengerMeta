@@ -12,8 +12,12 @@ const CONVERSATION_INDEXES: IndexDef[] = [
     keys: { "etsy.conversation_id": 1 },
     options: { name: "uq_etsy_conversation_id", unique: true },
   },
-  // Sort inbox theo tin nhắn mới nhất
-  { keys: { lastMessageDate: -1 }, options: { name: "idx_lastMessageDate" } },
+  // Sort inbox + cursor pagination: phải compound với _id để sort
+  // {lastMessageDate:-1, _id:-1} được index phục vụ (tránh in-memory SORT khi nhiều bản ghi).
+  {
+    keys: { lastMessageDate: -1, _id: -1 },
+    options: { name: "idx_lastMessageDate_id" },
+  },
   { keys: { updated_at: -1 }, options: { name: "idx_updated_at" } },
 ];
 

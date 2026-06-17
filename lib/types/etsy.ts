@@ -51,3 +51,45 @@ export interface ConversationSyncBody {
 export interface MessageSyncBody {
   messages?: EtsyRaw[];
 }
+
+// ---- DTO gọn cho frontend (KHÔNG trả nguyên blob etsy) ----
+
+/** 1 dòng hội thoại trong sidebar. */
+export interface ConversationListItem {
+  conversationId: number;
+  name: string;
+  avatar: string;
+  excerpt: string;
+  lastMessageDate: number;
+  messageCount: number;
+  hasReplied: boolean;
+  shopUserId: number;
+}
+
+/** 1 tin nhắn trong khung chat. */
+export interface MessageItem {
+  id: string;
+  message: string;
+  senderId: number;
+  fromMe: boolean;
+  createDate: number;
+  messageOrder: number;
+  isSystem: boolean;
+  images: string[];
+}
+
+/** Phản hồi list có cursor để load tiếp. */
+export interface ConversationListResponse {
+  items: ConversationListItem[];
+  nextCursor: string | null;
+}
+
+/** Phản hồi messages có cursor (load tin cũ hơn). */
+export interface MessageListResponse {
+  conversationId: number;
+  shopUserId: number;
+  name: string;
+  avatar: string;
+  items: MessageItem[];
+  nextCursor: string | null;
+}

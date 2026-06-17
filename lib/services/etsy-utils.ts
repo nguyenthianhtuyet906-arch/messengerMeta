@@ -27,6 +27,34 @@ export function getLastMessage(etsy: EtsyRaw): EtsyRaw | undefined {
   return isObject(last) ? last : undefined;
 }
 
+/** Truy cập field lồng nhau theo path "a.b.c"; trả undefined nếu đứt. */
+export function getPath(obj: unknown, path: string): unknown {
+  let cur: unknown = obj;
+  for (const key of path.split(".")) {
+    if (!isObject(cur)) return undefined;
+    cur = cur[key];
+  }
+  return cur;
+}
+
+/** Lấy giá trị string đầu tiên không rỗng theo danh sách path. */
+export function firstString(obj: unknown, paths: string[]): string {
+  for (const p of paths) {
+    const v = getPath(obj, p);
+    if (typeof v === "string" && v.trim() !== "") return v;
+  }
+  return "";
+}
+
+/** Lấy số đầu tiên hợp lệ theo danh sách path. */
+export function firstNumber(obj: unknown, paths: string[]): number | undefined {
+  for (const p of paths) {
+    const n = asNumber(getPath(obj, p));
+    if (n !== undefined) return n;
+  }
+  return undefined;
+}
+
 /** lastMessageDate = create_date của message cuối cùng. */
 export function extractLastMessageDate(etsy: EtsyRaw): number {
   const last = getLastMessage(etsy);

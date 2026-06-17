@@ -1,0 +1,108 @@
+import type { WithId } from "mongodb";
+import { getConversationsCollection, getMessagesCollection } from "@/lib/db/collections";
+import type {
+  ConversationDoc,
+  MessageDoc,
+  MessageItem,
+  MessageListResponse,
+} from "@/lib/types/etsy";
+import { asNumber, asString, firstNumber, firstString } from "@/lib/services/etsy-utils";
+
+const MSG_PROJECTION = {
+  "etsy.conversation_message_id": 1,
+  "etsy.message": 1,
+  "etsy.sender_id": 1,
+  "etsy.create_date": 1,
+  "etsy.message_order": 1,
+  "etsy.is_system_message": 1,
+  "etsy.images": 1,
+} as const;
+
+const CONV_HEADER_PROJECTION = {
+  "etsy.other_user": 1,
+  "etsy.buyer_info.buyer_profile": 1,
+  "user_data.user_id": 1,
+} as const;
+
+function mapMessage(doc: WithId<MessageDoc>, shopUserId: number): MessageItem {
+  const etsy = doc.etsy ?? {};
+  const senderId = asNumber(etsy["sender_id"]) ?? 0;
+  const rawImages = etsy["images"];
+  const images = Array.isArray(rawImages)
+    ? rawImages.filter((x): x is string => typeof x === "string")
+    : [];
+  return {
+    id: String(etsy["conversation_message_id"] ?? doc._id.toHexString()),
+    message: asString(etsy["message"]),
+    senderId,
+    fromMe: shopUserId !== 0 && senderId === shopUserId,
+    createDate: asNumber(etsy["create_date"]) ?? 0,
+    messageOrder: asNumber(etsy["message_order"]) ?? 0,
+    isSystem: etsy["is_system_message"] === true,
+    images,
+  };
+}
+
+export async function getConversationMessages(opts: {
+  conversationId: number;
+  before?: number | null;
+  limit?: number;
+}): Promise<MessageListResponse> {
+  const limit = Math.min(Math.max(opts.limit ?? 40, 1), 100);
+  const convColl = await getConversationsCollection();
+  const msgColl = await getMessagesCollection();
+
+  const conv = (await convColl.findOne(
+    { "etsy.conversation_id": opts.conversationId },
+    { projection: CONV_HEADER_PROJECTION },
+  )) as WithId<ConversationDoc> | null;
+
+  const shopUserId = conv ? firstNumber(conv, ["user_data.user_id"]) ?? 0 : 0;
+  const name = conv
+    ? firstString(conv.etsy ?? {}, [
+        "other_user.display_name",
+        "other_user.name",
+        "buyer_info.buyer_profile.display_name",
+        "buyer_info.buyer_profile.username",
+      ])
+    : "";
+  const avatar = conv
+    ? firstString(conv.etsy ?? {}, [
+        "other_user.im_avatar",
+        "other_user.avatar_url",
+        "buyer_info.buyer_profile.avatar_url",
+      ])
+    : "";
+
+  const filter: Record<string, unknown> = { "etsy.conversation_id": opts.conversationId };
+  if (typeof opts.before === "number") {
+    filter["etsy.message_order"] = { $lt: opts.before };
+  }
+
+  // Lấy N message mới nhất (desc), +1 để biết còn cũ hơn không.
+  const docs = (await msgColl
+    .find(filter, { projection: MSG_PROJECTION })
+    .sort({ "etsy.message_order": -1 })
+    .limit(limit + 1)
+    .toArray()) as WithId<MessageDoc>[];
+
+  const hasMore = docs.length > limit;
+  const page = hasMore ? docs.slice(0, limit) : docs;
+
+  // nextCursor = message_order nhỏ nhất đã trả (để load tin cũ hơn).
+  const oldest = page[page.length - 1];
+  const nextCursor =
+    hasMore && oldest ? String(asNumber(oldest.etsy?.["message_order"]) ?? "") : null;
+
+  // Đảo về thứ tự tăng dần (cũ → mới) để hiển thị.
+  const items = page.map((d) => mapMessage(d, shopUserId)).reverse();
+
+  return {
+    conversationId: opts.conversationId,
+    shopUserId,
+    name,
+    avatar,
+    items,
+    nextCursor,
+  };
+}

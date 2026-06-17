@@ -2,6 +2,7 @@ import type { AnyBulkWriteOperation } from "mongodb";
 import { getMessagesCollection } from "@/lib/db/collections";
 import type { EtsyRaw, MessageDoc } from "@/lib/types/etsy";
 import { asNumber, asString, isObject } from "@/lib/services/etsy-utils";
+import { publishNewMessages } from "@/lib/services/ably-publish";
 
 export interface SyncMessagesResult {
   received: number;
@@ -20,6 +21,8 @@ export async function syncMessages(messages: EtsyRaw[]): Promise<SyncMessagesRes
   const now = new Date();
 
   const ops: AnyBulkWriteOperation<MessageDoc>[] = [];
+  // opConvIds[i] = conversation_id của op thứ i (để biết conversation nào có tin mới).
+  const opConvIds: number[] = [];
   let skipped = 0;
 
   for (const msg of messages) {
@@ -35,6 +38,7 @@ export async function syncMessages(messages: EtsyRaw[]): Promise<SyncMessagesRes
     }
 
     const conversationId = asNumber(msg["conversation_id"]) ?? 0;
+    opConvIds.push(conversationId);
 
     ops.push({
       updateOne: {
@@ -59,5 +63,16 @@ export async function syncMessages(messages: EtsyRaw[]): Promise<SyncMessagesRes
   }
 
   const res = await coll.bulkWrite(ops, { ordered: false });
+
+  // Phát realtime cho mỗi conversation có message MỚI (1 lần/conversation).
+  const newConvIds = new Set<number>();
+  for (const idx of Object.keys(res.upsertedIds ?? {})) {
+    const convId = opConvIds[Number(idx)];
+    if (convId) newConvIds.add(convId);
+  }
+  if (newConvIds.size > 0) {
+    await publishNewMessages([...newConvIds]);
+  }
+
   return { received: messages.length, upserted: res.upsertedCount, skipped };
 }
