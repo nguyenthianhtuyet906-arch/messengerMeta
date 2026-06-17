@@ -20,8 +20,11 @@ interface TabsState {
   activeTabId: number | null;
   meta: Record<number, TabMeta>;
   openTab: (id: number, meta?: TabMeta) => void;
+  openMany: (entries: { id: number; meta?: TabMeta }[]) => void;
   closeTab: (id: number) => void;
+  closeAll: () => void;
   setActive: (id: number) => void;
+  cycleActive: (delta: number) => void;
 }
 
 const TabsContext = createContext<TabsState | null>(null);
@@ -74,6 +77,27 @@ export function TabsProvider({ children }: { children: React.ReactNode }) {
     if (m) setMeta((prev) => ({ ...prev, [id]: m }));
   }, []);
 
+  const openMany = useCallback((entries: { id: number; meta?: TabMeta }[]) => {
+    if (entries.length === 0) return;
+    setOpenTabs((prev) => {
+      const seen = new Set(prev);
+      const added: number[] = [];
+      for (const e of entries) {
+        if (!seen.has(e.id)) {
+          seen.add(e.id);
+          added.push(e.id);
+        }
+      }
+      if (added.length > 0) setActiveTabId(added[0]);
+      return added.length > 0 ? [...prev, ...added] : prev;
+    });
+    setMeta((prev) => {
+      const next = { ...prev };
+      for (const e of entries) if (e.meta) next[e.id] = e.meta;
+      return next;
+    });
+  }, []);
+
   const closeTab = useCallback((id: number) => {
     setOpenTabs((prev) => {
       const idx = prev.indexOf(id);
@@ -88,11 +112,39 @@ export function TabsProvider({ children }: { children: React.ReactNode }) {
     });
   }, []);
 
+  const closeAll = useCallback(() => {
+    setOpenTabs([]);
+    setActiveTabId(null);
+  }, []);
+
   const setActive = useCallback((id: number) => setActiveTabId(id), []);
 
+  // Chuyển active tab theo hướng (+1 kế tiếp, -1 lùi), wrap vòng.
+  const cycleActive = useCallback(
+    (delta: number) => {
+      setActiveTabId((cur) => {
+        if (openTabs.length === 0) return cur;
+        const idx = cur === null ? -1 : openTabs.indexOf(cur);
+        const next = (idx + delta + openTabs.length) % openTabs.length;
+        return openTabs[next];
+      });
+    },
+    [openTabs],
+  );
+
   const value = useMemo<TabsState>(
-    () => ({ openTabs, activeTabId, meta, openTab, closeTab, setActive }),
-    [openTabs, activeTabId, meta, openTab, closeTab, setActive],
+    () => ({
+      openTabs,
+      activeTabId,
+      meta,
+      openTab,
+      openMany,
+      closeTab,
+      closeAll,
+      setActive,
+      cycleActive,
+    }),
+    [openTabs, activeTabId, meta, openTab, openMany, closeTab, closeAll, setActive, cycleActive],
   );
 
   return <TabsContext.Provider value={value}>{children}</TabsContext.Provider>;

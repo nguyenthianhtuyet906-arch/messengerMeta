@@ -76,12 +76,42 @@ export interface MessageItem {
   messageOrder: number;
   isSystem: boolean;
   images: string[];
+  /** Email nhân viên đã gửi (tin đi); rỗng với tin từ Etsy. */
+  senderEmail: string;
+  /** Tên/avatar nhân viên gửi (join từ users). */
+  senderName: string;
+  senderAvatar: string;
+}
+
+/** Shop kèm trạng thái online (filter theo shop). */
+export interface ShopItem {
+  userId: number;
+  shopName: string;
+  avatar: string;
+  online: boolean;
+}
+
+/** Bộ lọc danh sách hội thoại. */
+export interface ConversationFilters {
+  search: string;
+  notReplied: boolean;
+  hasOrder: boolean;
+  orderHelp: boolean;
+  shopIds: number[];
 }
 
 /** Phản hồi list có cursor để load tiếp. */
 export interface ConversationListResponse {
   items: ConversationListItem[];
   nextCursor: string | null;
+}
+
+/** Tin nhắn đang gửi (chưa được Etsy xác nhận) — hiển thị tách khỏi list đã fetch. */
+export interface PendingMessage {
+  localId: string;
+  serverId: string | null;
+  text: string;
+  status: "sending" | "failed";
 }
 
 /** Phản hồi messages có cursor (load tin cũ hơn). */

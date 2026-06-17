@@ -5,10 +5,17 @@ import { getConversations } from "@/lib/services/conversation-read";
 export async function GET(req: NextRequest) {
   try {
     const sp = req.nextUrl.searchParams;
+    const shopIdsRaw = sp.get("shopIds");
     const data = await getConversations({
       cursor: sp.get("cursor"),
       limit: sp.get("limit") ? Number(sp.get("limit")) : undefined,
       search: sp.get("search") ?? undefined,
+      notReplied: sp.get("notReplied") === "true",
+      hasOrder: sp.get("hasOrder") === "true",
+      orderHelp: sp.get("orderHelp") === "true",
+      shopIds: shopIdsRaw
+        ? shopIdsRaw.split(",").map(Number).filter(Number.isFinite)
+        : undefined,
     });
     return NextResponse.json(data);
   } catch (err) {

@@ -65,41 +65,69 @@ export function mapConversation(doc: WithId<ConversationDoc>): ConversationListI
   };
 }
 
-export async function getConversations(opts: {
+export interface ConversationFilterOpts {
   cursor?: string | null;
   limit?: number;
   search?: string;
-}): Promise<ConversationListResponse> {
+  notReplied?: boolean;
+  hasOrder?: boolean;
+  orderHelp?: boolean;
+  shopIds?: number[];
+}
+
+export async function getConversations(
+  opts: ConversationFilterOpts,
+): Promise<ConversationListResponse> {
   const coll = await getConversationsCollection();
   const limit = Math.min(Math.max(opts.limit ?? 30, 1), 100);
 
-  const filter: Filter<ConversationDoc> = {};
+  // Gom từng điều kiện thành clause rồi kết hợp bằng $and (mirror dora buildBaseFilter).
+  const clauses: Record<string, unknown>[] = [];
+
   const cursor = decodeCursor(opts.cursor ?? null);
   if (cursor) {
-    // Sort lastMessageDate desc, _id desc; lấy bản ghi "nhỏ hơn" cursor.
-    filter.$or = [
-      { lastMessageDate: { $lt: cursor.d } },
-      { lastMessageDate: cursor.d, _id: { $lt: new ObjectId(cursor.id) } },
-    ];
+    clauses.push({
+      $or: [
+        { lastMessageDate: { $lt: cursor.d } },
+        { lastMessageDate: cursor.d, _id: { $lt: new ObjectId(cursor.id) } },
+      ],
+    });
   }
 
   const search = opts.search?.trim();
   if (search) {
-    // Regex cơ bản (chưa có text index — đủ dùng, tối ưu sau nếu cần).
     const rx = { $regex: search, $options: "i" };
-    const searchOr = [
-      { "etsy.other_user.display_name": rx },
-      { "etsy.buyer_info.buyer_profile.display_name": rx },
-      { "etsy.title": rx },
-      { "etsy.excerpt": rx },
-    ];
-    if (filter.$or) {
-      filter.$and = [{ $or: filter.$or }, { $or: searchOr }];
-      delete filter.$or;
-    } else {
-      filter.$or = searchOr;
-    }
+    clauses.push({
+      $or: [
+        { "etsy.other_user.display_name": rx },
+        { "etsy.buyer_info.buyer_profile.display_name": rx },
+        { "etsy.title": rx },
+        { "etsy.excerpt": rx },
+      ],
+    });
   }
+
+  // Help request
+  if (opts.orderHelp) clauses.push({ "etsy.is_order_help_request": true });
+
+  // Not Replied: chưa trả lời và chưa được đánh dấu xử lý
+  if (opts.notReplied) {
+    clauses.push({ "etsy.has_replied": false });
+    clauses.push({ tags: { $nin: ["handled", "approved"] } });
+  }
+
+  // Has Order: buyer có đơn hàng
+  if (opts.hasOrder) {
+    clauses.push({ "etsy.buyer_info.past_order_history.total_orders": { $gt: 0 } });
+  }
+
+  // Lọc theo shop (user_data.user_id top-level)
+  if (opts.shopIds && opts.shopIds.length > 0) {
+    clauses.push({ "user_data.user_id": { $in: opts.shopIds } });
+  }
+
+  const filter: Filter<ConversationDoc> =
+    clauses.length > 0 ? ({ $and: clauses } as Filter<ConversationDoc>) : {};
 
   // limit+1 để biết còn trang sau không.
   const docs = (await coll

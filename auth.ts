@@ -5,6 +5,9 @@ import { authConfig } from "./auth.config";
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   ...authConfig,
-  adapter: MongoDBAdapter(clientPromise),
+  // Lưu users/accounts cùng DB với dữ liệu app (meta_local) để join sender_email.
+  adapter: MongoDBAdapter(clientPromise, {
+    databaseName: process.env.MONGODB_DB || "meta_local",
+  }),
   session: { strategy: "jwt" },
 });

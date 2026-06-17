@@ -1,25 +1,33 @@
 "use client";
 
 import { useInfiniteQuery } from "@tanstack/react-query";
-import type { ConversationListItem, ConversationListResponse } from "@/lib/types/etsy";
+import type {
+  ConversationFilters,
+  ConversationListItem,
+  ConversationListResponse,
+} from "@/lib/types/etsy";
 
 async function fetchConversations(
   cursor: string | null,
-  search: string,
+  filters: ConversationFilters,
 ): Promise<ConversationListResponse> {
   const params = new URLSearchParams();
   if (cursor) params.set("cursor", cursor);
-  if (search) params.set("search", search);
+  if (filters.search) params.set("search", filters.search);
+  if (filters.notReplied) params.set("notReplied", "true");
+  if (filters.hasOrder) params.set("hasOrder", "true");
+  if (filters.orderHelp) params.set("orderHelp", "true");
+  if (filters.shopIds.length > 0) params.set("shopIds", filters.shopIds.join(","));
   params.set("limit", "30");
   const res = await fetch(`/api/conversations?${params.toString()}`);
   if (!res.ok) throw new Error(`conversations ${res.status}`);
   return res.json();
 }
 
-export function useConversations(search: string) {
+export function useConversations(filters: ConversationFilters) {
   const query = useInfiniteQuery({
-    queryKey: ["conversations", search],
-    queryFn: ({ pageParam }) => fetchConversations(pageParam, search),
+    queryKey: ["conversations", filters],
+    queryFn: ({ pageParam }) => fetchConversations(pageParam, filters),
     initialPageParam: null as string | null,
     getNextPageParam: (last) => last.nextCursor,
   });
