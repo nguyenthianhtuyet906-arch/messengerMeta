@@ -44,14 +44,14 @@ export function TagEditor({ conversationId }: { conversationId: number }) {
         <p className="text-sm text-[#c41e3a]">Không tải được thẻ.</p>
       ) : (
         <>
-          {/* Đã gắn */}
+          {/* Đã gắn — luôn ở trên */}
           {tags.length > 0 && (
-            <div className="mb-2 flex flex-wrap gap-1.5">
+            <div className="mb-3 flex flex-wrap gap-2">
               {tags.map((tag) => (
                 <span
                   key={tag}
                   className={cn(
-                    "inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium",
+                    "inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-sm font-semibold",
                     tagClassName(tag),
                   )}
                 >
@@ -59,30 +59,11 @@ export function TagEditor({ conversationId }: { conversationId: number }) {
                   <button
                     onClick={() => remove.mutate(tag)}
                     aria-label={`Gỡ thẻ ${tagLabel(tag)}`}
-                    className="flex h-3.5 w-3.5 items-center justify-center rounded-full opacity-60 transition-opacity hover:opacity-100"
+                    className="flex h-4 w-4 items-center justify-center rounded-full opacity-70 transition-opacity hover:opacity-100"
                   >
-                    <X className="h-3 w-3" />
+                    <X className="h-3.5 w-3.5" />
                   </button>
                 </span>
-              ))}
-            </div>
-          )}
-
-          {/* Thẻ hệ thống chưa gắn */}
-          {availableSystem.length > 0 && (
-            <div className="mb-2 flex flex-wrap gap-1.5">
-              {availableSystem.map((t) => (
-                <button
-                  key={t.name}
-                  onClick={() => add.mutate(t.name)}
-                  disabled={add.isPending}
-                  className={cn(
-                    "inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium opacity-70 transition-opacity hover:opacity-100 disabled:opacity-40",
-                    t.className,
-                  )}
-                >
-                  {t.label}
-                </button>
               ))}
             </div>
           )}
@@ -114,6 +95,25 @@ export function TagEditor({ conversationId }: { conversationId: number }) {
               <Plus className="h-4 w-4" />
             </button>
           </div>
+
+          {/* Thẻ hệ thống chưa gắn — bấm để gắn nhanh */}
+          {availableSystem.length > 0 && (
+            <div className="mt-3 flex flex-wrap gap-2">
+              {availableSystem.map((t) => (
+                <button
+                  key={t.name}
+                  onClick={() => add.mutate(t.name)}
+                  disabled={add.isPending}
+                  className={cn(
+                    "inline-flex items-center rounded-full px-2.5 py-1 text-sm font-medium transition hover:brightness-95 disabled:opacity-50",
+                    t.className,
+                  )}
+                >
+                  {t.label}
+                </button>
+              ))}
+            </div>
+          )}
         </>
       )}
     </section>
