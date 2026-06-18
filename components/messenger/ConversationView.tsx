@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, type KeyboardEvent } from "react";
-import { Send } from "lucide-react";
+import { Send, Info } from "lucide-react";
 import { MessageList } from "@/components/messenger/MessageList";
 import { useSendMessage } from "@/lib/hooks/useSendMessage";
 import type { TabMeta } from "@/lib/store/tabs";
@@ -11,9 +11,13 @@ import { initials } from "@/lib/format";
 export function ConversationView({
   conversationId,
   meta,
+  infoOpen = false,
+  onToggleInfo,
 }: {
   conversationId: number;
   meta?: TabMeta;
+  infoOpen?: boolean;
+  onToggleInfo?: () => void;
 }) {
   const [draft, setDraft] = useState("");
   const { pending, send } = useSendMessage(conversationId);
@@ -43,6 +47,21 @@ export function ConversationView({
           </AvatarFallback>
         </Avatar>
         <h2 className="font-bold leading-tight text-[#0a1317]">{name}</h2>
+        {onToggleInfo ? (
+          <button
+            onClick={onToggleInfo}
+            aria-label="Lịch sử đơn hàng"
+            aria-pressed={infoOpen}
+            className={
+              "ml-auto flex h-10 w-10 shrink-0 items-center justify-center rounded-full transition-colors " +
+              (infoOpen
+                ? "bg-[#e7f0fb] text-[#0064e0]"
+                : "text-[#5d6c7b] hover:bg-[#f1f4f7]")
+            }
+          >
+            <Info className="h-5 w-5" />
+          </button>
+        ) : null}
       </header>
 
       <MessageList conversationId={conversationId} pending={pending} />

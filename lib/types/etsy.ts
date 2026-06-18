@@ -106,6 +106,33 @@ export interface ConversationListResponse {
   nextCursor: string | null;
 }
 
+/** 1 dòng sản phẩm trong đơn (receipt_history[].transactions). */
+export interface ReceiptTransaction {
+  transactionId: number;
+  title: string;
+  image: string;
+  quantity: number;
+  value: string;
+}
+
+/** 1 đơn hàng trong lịch sử mua của khách (etsy.buyer_info.receipt_history). */
+export interface ReceiptHistoryItem {
+  receiptId: number;
+  date: string;
+  value: string;
+  state: string;
+  isShipped: boolean;
+  isDigitalDelivery: boolean;
+  totalQty: number;
+  transactions: ReceiptTransaction[];
+}
+
+/** Phản hồi chi tiết hội thoại cho sidebar phải (chỉ receipt_history). */
+export interface ConversationDetailResponse {
+  conversationId: number;
+  receiptHistory: ReceiptHistoryItem[];
+}
+
 /** Tin nhắn đang gửi (chưa được Etsy xác nhận) — hiển thị tách khỏi list đã fetch. */
 export interface PendingMessage {
   localId: string;

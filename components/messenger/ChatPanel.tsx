@@ -1,11 +1,19 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { MessageSquare } from "lucide-react";
 import { ConversationView } from "@/components/messenger/ConversationView";
+import { ReceiptHistoryPanel } from "@/components/messenger/ReceiptHistoryPanel";
 import { useTabs } from "@/lib/store/tabs";
 
 export function ChatPanel() {
   const { activeTabId, meta } = useTabs();
+  const [infoOpen, setInfoOpen] = useState(true);
+
+  // Mở sẵn panel mỗi khi vào/đổi hội thoại.
+  useEffect(() => {
+    setInfoOpen(true);
+  }, [activeTabId]);
 
   if (activeTabId === null) {
     return (
@@ -18,10 +26,20 @@ export function ChatPanel() {
 
   // key=activeTabId → đổi conversation thì remount sạch (pending/scroll riêng từng hội thoại).
   return (
-    <ConversationView
-      key={activeTabId}
-      conversationId={activeTabId}
-      meta={meta[activeTabId]}
-    />
+    <div className="flex min-h-0 flex-1">
+      <ConversationView
+        key={activeTabId}
+        conversationId={activeTabId}
+        meta={meta[activeTabId]}
+        infoOpen={infoOpen}
+        onToggleInfo={() => setInfoOpen((v) => !v)}
+      />
+      {infoOpen ? (
+        <ReceiptHistoryPanel
+          conversationId={activeTabId}
+          onClose={() => setInfoOpen(false)}
+        />
+      ) : null}
+    </div>
   );
 }
