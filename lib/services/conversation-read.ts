@@ -25,6 +25,7 @@ const LIST_PROJECTION = {
   "etsy.message_count": 1,
   "etsy.has_replied": 1,
   lastMessageDate: 1,
+  tags: 1,
   "user_data.user_id": 1,
 } as const;
 
@@ -70,6 +71,7 @@ export function mapConversation(doc: WithId<ConversationDoc>): ConversationListI
     messageCount: asNumber(etsy["message_count"]) ?? 0,
     hasReplied: etsy["has_replied"] === true,
     shopUserId: firstNumber(doc, ["user_data.user_id"]) ?? 0,
+    tags: Array.isArray(doc.tags) ? doc.tags : [],
   };
 }
 
@@ -82,6 +84,7 @@ export interface ConversationFilterOpts {
   orderHelp?: boolean;
   hasNote?: boolean;
   shopIds?: number[];
+  tags?: string[];
 }
 
 export async function getConversations(
@@ -137,6 +140,11 @@ export async function getConversations(
   // Lọc theo shop (user_data.user_id top-level)
   if (opts.shopIds && opts.shopIds.length > 0) {
     clauses.push({ "user_data.user_id": { $in: opts.shopIds } });
+  }
+
+  // Lọc theo tag: khớp bất kỳ tag nào được chọn.
+  if (opts.tags && opts.tags.length > 0) {
+    clauses.push({ tags: { $in: opts.tags } });
   }
 
   const filter: Filter<ConversationDoc> =

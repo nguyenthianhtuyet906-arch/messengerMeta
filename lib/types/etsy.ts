@@ -107,6 +107,8 @@ export interface ConversationListItem {
   messageCount: number;
   hasReplied: boolean;
   shopUserId: number;
+  /** Tag cấp hội thoại (ConversationDoc.tags) — hiển thị pill ở dòng danh sách. */
+  tags: string[];
 }
 
 /** 1 tin nhắn trong khung chat. */
@@ -142,6 +144,8 @@ export interface ConversationFilters {
   orderHelp: boolean;
   hasNote: boolean;
   shopIds: number[];
+  /** Lọc theo tag (khớp bất kỳ tag nào trong danh sách). */
+  tags: string[];
 }
 
 /** 1 ghi chú trả về client (đã join tên/avatar tác giả). */
@@ -162,6 +166,23 @@ export interface NoteItem {
 export interface NotesResponse {
   conversationId: number;
   items: NoteItem[];
+}
+
+/** Phản hồi danh sách tag của 1 hội thoại. */
+export interface TagsResponse {
+  conversationId: number;
+  tags: string[];
+}
+
+/** Số lượng hội thoại gắn 1 tag (dùng cho dropdown lọc). */
+export interface TagStat {
+  tag: string;
+  count: number;
+}
+
+/** Phản hồi thống kê tag. */
+export interface TagStatsResponse {
+  stats: TagStat[];
 }
 
 /** Phản hồi list có cursor để load tiếp. */

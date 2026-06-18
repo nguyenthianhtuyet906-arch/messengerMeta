@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { X, Package, ChevronDown } from "lucide-react";
 import { useConversationDetail } from "@/lib/hooks/useConversationDetail";
+import { TagEditor } from "@/components/messenger/TagEditor";
 import type { ReceiptHistoryItem } from "@/lib/types/etsy";
 
 function ReceiptCard({ r }: { r: ReceiptHistoryItem }) {
@@ -119,6 +120,11 @@ export function ReceiptHistoryPanel({
             ))}
           </div>
         )}
+
+        {/* Quản lý thẻ cấp hội thoại — dưới phần lịch sử đơn */}
+        <div className="mt-3">
+          <TagEditor conversationId={conversationId} />
+        </div>
       </div>
     </aside>
   );

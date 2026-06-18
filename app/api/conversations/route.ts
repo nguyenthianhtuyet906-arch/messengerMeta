@@ -6,6 +6,7 @@ export async function GET(req: NextRequest) {
   try {
     const sp = req.nextUrl.searchParams;
     const shopIdsRaw = sp.get("shopIds");
+    const tagsRaw = sp.get("tags");
     const data = await getConversations({
       cursor: sp.get("cursor"),
       limit: sp.get("limit") ? Number(sp.get("limit")) : undefined,
@@ -16,6 +17,9 @@ export async function GET(req: NextRequest) {
       hasNote: sp.get("hasNote") === "true",
       shopIds: shopIdsRaw
         ? shopIdsRaw.split(",").map(Number).filter(Number.isFinite)
+        : undefined,
+      tags: tagsRaw
+        ? tagsRaw.split(",").map((t) => t.trim()).filter(Boolean)
         : undefined,
     });
     return NextResponse.json(data);

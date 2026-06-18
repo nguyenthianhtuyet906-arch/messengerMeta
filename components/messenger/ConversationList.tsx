@@ -6,8 +6,10 @@ import { Search, MessageSquareReply } from "lucide-react";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { useConversations } from "@/lib/hooks/useConversations";
 import { ShopFilter } from "@/components/messenger/ShopFilter";
+import { TagFilter } from "@/components/messenger/TagFilter";
 import { useTabs } from "@/lib/store/tabs";
 import type { ConversationFilters, ConversationListItem } from "@/lib/types/etsy";
+import { tagClassName, tagLabel } from "@/lib/tags";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
 import { initials, timeAgo } from "@/lib/format";
@@ -60,6 +62,21 @@ const Row = memo(function Row({
             <span className="h-2.5 w-2.5 shrink-0 rounded-full bg-[#0064e0]" />
           )}
         </div>
+        {c.tags.length > 0 && (
+          <div className="mt-1 flex flex-wrap gap-1">
+            {c.tags.map((tag) => (
+              <span
+                key={tag}
+                className={cn(
+                  "inline-flex items-center rounded-full px-1.5 py-0.5 text-[10px] font-medium",
+                  tagClassName(tag),
+                )}
+              >
+                {tagLabel(tag)}
+              </span>
+            ))}
+          </div>
+        )}
       </div>
     </button>
   );
@@ -97,6 +114,7 @@ export function ConversationList() {
   const [hasOrder, setHasOrder] = useState(false);
   const [hasNote, setHasNote] = useState(false);
   const [shopIds, setShopIds] = useState<number[]>([]);
+  const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [bulkLoading, setBulkLoading] = useState(false);
   const { openTab, openMany, activeTabId } = useTabs();
 
@@ -107,8 +125,8 @@ export function ConversationList() {
   }, [searchInput]);
 
   const filters: ConversationFilters = useMemo(
-    () => ({ search, orderHelp, notReplied, hasOrder, hasNote, shopIds }),
-    [search, orderHelp, notReplied, hasOrder, hasNote, shopIds],
+    () => ({ search, orderHelp, notReplied, hasOrder, hasNote, shopIds, tags: selectedTags }),
+    [search, orderHelp, notReplied, hasOrder, hasNote, shopIds, selectedTags],
   );
 
   const { items, data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading } =
@@ -205,6 +223,7 @@ export function ConversationList() {
             onClick={() => setHasNote((v) => !v)}
           />
           <ShopFilter selected={shopIds} onChange={setShopIds} />
+          <TagFilter selected={selectedTags} onChange={setSelectedTags} shopIds={shopIds} />
         </div>
 
         {/* Mở nhanh nhiều hội thoại */}
@@ -238,6 +257,8 @@ export function ConversationList() {
               return (
                 <div
                   key={c.conversationId}
+                  ref={virtualizer.measureElement}
+                  data-index={v.index}
                   style={{
                     position: "absolute",
                     top: 0,
