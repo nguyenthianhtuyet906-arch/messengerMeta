@@ -18,7 +18,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 
 const navItems = [
   { href: "/", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/messenger", label: "Messenger", icon: MessageCircle },
+  { href: "/messages", label: "Messenger", icon: MessageCircle },
 ]
 
 const COLLAPSE_KEY = "sidebar.collapsed.v1"
@@ -107,7 +107,8 @@ export function Sidebar() {
       {/* Nav */}
       <nav className="flex flex-1 flex-col gap-1">
         {navItems.map((item) => {
-          const active = pathname === item.href
+          const active =
+            item.href === "/" ? pathname === "/" : pathname.startsWith(item.href)
           const Icon = item.icon
           return (
             <Link

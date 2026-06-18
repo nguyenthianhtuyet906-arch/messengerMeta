@@ -5,6 +5,7 @@ import { TabsProvider, useTabs } from "@/lib/store/tabs";
 import { ConversationList } from "@/components/messenger/ConversationList";
 import { TabBar } from "@/components/messenger/TabBar";
 import { ChatPanel } from "@/components/messenger/ChatPanel";
+import { UrlSync } from "@/components/messenger/RouteSync";
 import { useRealtimeMessages } from "@/lib/hooks/useRealtimeMessages";
 
 function RealtimeBridge() {
@@ -28,11 +29,14 @@ function TabHotkeys() {
   return null;
 }
 
-export function MessengerWorkspace() {
+export default function MessagesLayout({ children }: { children: React.ReactNode }) {
   return (
     <TabsProvider>
       <RealtimeBridge />
       <TabHotkeys />
+      <UrlSync />
+      {/* children = page sync deep-link (không render gì hiển thị). */}
+      {children}
       <div className="flex h-full">
         <ConversationList />
         <div className="hidden flex-1 flex-col overflow-hidden md:flex">

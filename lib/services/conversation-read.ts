@@ -5,7 +5,12 @@ import type {
   ConversationListItem,
   ConversationListResponse,
 } from "@/lib/types/etsy";
-import { asNumber, firstNumber, firstString } from "@/lib/services/etsy-utils";
+import {
+  asNumber,
+  decodeHtmlEntities,
+  firstNumber,
+  firstString,
+} from "@/lib/services/etsy-utils";
 
 // Projection: chỉ lấy subfield cần cho sidebar, TRÁNH kéo nguyên blob etsy
 // (buyer_info.receipt_history, coupons, detail.messages... rất nặng).
@@ -46,18 +51,20 @@ export function mapConversation(doc: WithId<ConversationDoc>): ConversationListI
   const etsy = doc.etsy ?? {};
   return {
     conversationId: asNumber(etsy["conversation_id"]) ?? 0,
-    name: firstString(etsy, [
-      "other_user.display_name",
-      "other_user.name",
-      "buyer_info.buyer_profile.display_name",
-      "buyer_info.buyer_profile.username",
-    ]),
+    name: decodeHtmlEntities(
+      firstString(etsy, [
+        "other_user.display_name",
+        "other_user.name",
+        "buyer_info.buyer_profile.display_name",
+        "buyer_info.buyer_profile.username",
+      ]),
+    ),
     avatar: firstString(etsy, [
       "other_user.im_avatar",
       "other_user.avatar_url",
       "buyer_info.buyer_profile.avatar_url",
     ]),
-    excerpt: firstString(etsy, ["excerpt", "preview", "title"]),
+    excerpt: decodeHtmlEntities(firstString(etsy, ["excerpt", "preview", "title"])),
     lastMessageDate: doc.lastMessageDate ?? 0,
     messageCount: asNumber(etsy["message_count"]) ?? 0,
     hasReplied: etsy["has_replied"] === true,

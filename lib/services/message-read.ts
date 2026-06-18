@@ -10,7 +10,13 @@ import type {
   MessageItem,
   MessageListResponse,
 } from "@/lib/types/etsy";
-import { asNumber, asString, firstNumber, firstString } from "@/lib/services/etsy-utils";
+import {
+  asNumber,
+  asString,
+  decodeHtmlEntities,
+  firstNumber,
+  firstString,
+} from "@/lib/services/etsy-utils";
 
 const MSG_PROJECTION = {
   "etsy.conversation_message_id": 1,
@@ -70,7 +76,7 @@ function mapMessage(
   const user = senderEmail ? users.get(senderEmail) : undefined;
   return {
     id: String(etsy["conversation_message_id"] ?? doc._id.toHexString()),
-    message: asString(etsy["message"]),
+    message: decodeHtmlEntities(asString(etsy["message"])),
     senderId,
     fromMe: shopUserId !== 0 && senderId === shopUserId,
     createDate: asNumber(etsy["create_date"]) ?? 0,
@@ -99,12 +105,14 @@ export async function getConversationMessages(opts: {
 
   const shopUserId = conv ? firstNumber(conv, ["user_data.user_id"]) ?? 0 : 0;
   const name = conv
-    ? firstString(conv.etsy ?? {}, [
-        "other_user.display_name",
-        "other_user.name",
-        "buyer_info.buyer_profile.display_name",
-        "buyer_info.buyer_profile.username",
-      ])
+    ? decodeHtmlEntities(
+        firstString(conv.etsy ?? {}, [
+          "other_user.display_name",
+          "other_user.name",
+          "buyer_info.buyer_profile.display_name",
+          "buyer_info.buyer_profile.username",
+        ]),
+      )
     : "";
   const avatar = conv
     ? firstString(conv.etsy ?? {}, [

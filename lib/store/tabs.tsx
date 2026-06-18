@@ -19,6 +19,8 @@ interface TabsState {
   openTabs: number[];
   activeTabId: number | null;
   meta: Record<number, TabMeta>;
+  /** true sau khi đã khôi phục tab từ localStorage (để deep-link không bị ghi đè). */
+  isHydrated: boolean;
   openTab: (id: number, meta?: TabMeta) => void;
   openMany: (entries: { id: number; meta?: TabMeta }[]) => void;
   closeTab: (id: number) => void;
@@ -41,6 +43,7 @@ export function TabsProvider({ children }: { children: React.ReactNode }) {
   const [activeTabId, setActiveTabId] = useState<number | null>(null);
   const [meta, setMeta] = useState<Record<number, TabMeta>>({});
   const hydrated = useRef(false);
+  const [isHydrated, setIsHydrated] = useState(false);
 
   // Khôi phục tab từ localStorage.
   useEffect(() => {
@@ -56,6 +59,7 @@ export function TabsProvider({ children }: { children: React.ReactNode }) {
       /* ignore */
     }
     hydrated.current = true;
+    setIsHydrated(true);
   }, []);
 
   // Persist mỗi khi thay đổi (sau hydrate).
@@ -137,6 +141,7 @@ export function TabsProvider({ children }: { children: React.ReactNode }) {
       openTabs,
       activeTabId,
       meta,
+      isHydrated,
       openTab,
       openMany,
       closeTab,
@@ -144,7 +149,18 @@ export function TabsProvider({ children }: { children: React.ReactNode }) {
       setActive,
       cycleActive,
     }),
-    [openTabs, activeTabId, meta, openTab, openMany, closeTab, closeAll, setActive, cycleActive],
+    [
+      openTabs,
+      activeTabId,
+      meta,
+      isHydrated,
+      openTab,
+      openMany,
+      closeTab,
+      closeAll,
+      setActive,
+      cycleActive,
+    ],
   );
 
   return <TabsContext.Provider value={value}>{children}</TabsContext.Provider>;

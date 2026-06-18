@@ -6,25 +6,18 @@ import type {
   ReceiptHistoryItem,
   ReceiptTransaction,
 } from "@/lib/types/etsy";
-import { asNumber, asString, getPath, isObject } from "@/lib/services/etsy-utils";
+import {
+  asNumber,
+  asString,
+  decodeHtmlEntities,
+  getPath,
+  isObject,
+} from "@/lib/services/etsy-utils";
 
 // Chỉ lấy receipt_history (field nặng, bị loại khỏi list projection).
 const DETAIL_PROJECTION = {
   "etsy.buyer_info.receipt_history": 1,
 } as const;
-
-// Giải mã HTML entity trong title Etsy (vd "&#39;" -> "'", "&amp;" -> "&").
-function decodeHtmlEntities(s: string): string {
-  return s
-    .replace(/&#(\d+);/g, (_, n) => String.fromCharCode(Number(n)))
-    .replace(/&#x([0-9a-fA-F]+);/g, (_, n) => String.fromCharCode(parseInt(n, 16)))
-    .replace(/&quot;/g, '"')
-    .replace(/&apos;/g, "'")
-    .replace(/&lt;/g, "<")
-    .replace(/&gt;/g, ">")
-    .replace(/&nbsp;/g, " ")
-    .replace(/&amp;/g, "&");
-}
 
 function mapTransaction(raw: unknown): ReceiptTransaction {
   const t = isObject(raw) ? raw : {};

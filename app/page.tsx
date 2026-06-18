@@ -40,7 +40,7 @@ export default function DashboardPage() {
           <div className="mb-5 flex items-center justify-between">
             <h2 className="text-2xl font-medium tracking-tight text-[#0a1317]">Đoạn chat gần đây</h2>
             <Link
-              href="/messenger"
+              href="/messages"
               className="inline-flex items-center gap-2 rounded-full bg-[#0064e0] px-5 py-2.5 text-sm font-bold text-white transition-colors hover:bg-[#0457cb]"
             >
               Xem tất cả
@@ -53,7 +53,7 @@ export default function DashboardPage() {
               {conversations.slice(0, 5).map((c) => (
                 <li key={c.id}>
                   <Link
-                    href="/messenger"
+                    href="/messages"
                     className="flex items-center gap-3 px-6 py-4 transition-colors hover:bg-[#f1f4f7]"
                   >
                     <div className="relative shrink-0">

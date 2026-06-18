@@ -68,6 +68,9 @@ function ReceiptCard({ r }: { r: ReceiptHistoryItem }) {
                 <p className="text-xs text-[#5d6c7b]">
                   {t.quantity} × {t.value}
                 </p>
+                <p className="cursor-text select-text break-all text-xs text-[#9aa6b2]">
+                  #{r.receiptId}-{t.transactionId}
+                </p>
               </div>
             </div>
           ))}
