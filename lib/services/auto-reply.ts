@@ -19,9 +19,10 @@ export function normalizeText(s: string): string {
   return t.trim();
 }
 
-/** Mirror splitTriggers: tách theo , | ; */
+/** Tách trigger theo ; (giữ | làm dấu tách phụ). Dấu , KHÔNG còn là dấu tách
+ * để câu có dấu phẩy (vd "Overall, how satisfied...") giữ nguyên 1 cụm. */
 function splitTriggers(s: string): string[] {
-  return (s ?? "").replace(/[|;]/g, ",").split(",");
+  return (s ?? "").replace(/\|/g, ";").split(";");
 }
 
 /** Mirror normalizeTriggersList: token chuẩn hoá, bỏ rỗng. */

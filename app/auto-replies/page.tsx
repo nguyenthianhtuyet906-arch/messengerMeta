@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
-import { ArrowLeft, Plus, Trash2, Loader2 } from "lucide-react";
+import { ArrowLeft, Plus, Trash2, Loader2, Pencil, Check, X } from "lucide-react";
 
 interface Rule {
   _id: string;
@@ -18,6 +18,13 @@ export default function AutoRepliesPage() {
   const [reply, setReply] = useState("");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Sửa inline
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editTrigger, setEditTrigger] = useState("");
+  const [editReply, setEditReply] = useState("");
+  const [editSaving, setEditSaving] = useState(false);
+  const [editError, setEditError] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -71,6 +78,47 @@ export default function AutoRepliesPage() {
     );
   };
 
+  const startEdit = (r: Rule) => {
+    setEditingId(r._id);
+    setEditTrigger(r.trigger);
+    setEditReply(r.reply);
+    setEditError(null);
+  };
+
+  const cancelEdit = () => {
+    setEditingId(null);
+    setEditError(null);
+  };
+
+  const saveEdit = async (id: string) => {
+    setEditError(null);
+    if (!editTrigger.trim() || !editReply.trim()) {
+      setEditError("Cần nhập cả trigger và nội dung trả lời.");
+      return;
+    }
+    setEditSaving(true);
+    try {
+      const res = await fetch(`/api/auto-replies/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ trigger: editTrigger.trim(), reply: editReply.trim() }),
+      });
+      const data = (await res.json()) as { error?: string };
+      if (!res.ok) {
+        setEditError(data.error ?? `Lỗi ${res.status}`);
+        return;
+      }
+      setRules((prev) =>
+        prev.map((x) =>
+          x._id === id ? { ...x, trigger: editTrigger.trim(), reply: editReply.trim() } : x,
+        ),
+      );
+      setEditingId(null);
+    } finally {
+      setEditSaving(false);
+    }
+  };
+
   const remove = async (id: string) => {
     if (!confirm("Xoá quy tắc này?")) return;
     await fetch(`/api/auto-replies/${id}`, { method: "DELETE" });
@@ -95,23 +143,25 @@ export default function AutoRepliesPage() {
       <p className="mb-4 text-sm text-[#5d6c7b]">
         Khi tin nhắn khách khớp <strong>chính xác</strong> một trigger (đã chuẩn hoá: thường
         hoá, bỏ dấu câu), hệ thống tự gửi nội dung trả lời tương ứng. Nhiều trigger ngăn cách
-        bằng dấu phẩy.
+        bằng dấu chấm phẩy <code>;</code> (dấu phẩy được giữ nguyên trong câu).
       </p>
 
       {/* Form tạo mới */}
       <div className="mb-6 rounded-2xl border border-[#dee3e9] p-4">
         <div className="grid gap-3 sm:grid-cols-2">
-          <input
+          <textarea
             value={trigger}
             onChange={(e) => setTrigger(e.target.value)}
-            placeholder="Trigger (vd: hello, hi)"
-            className="rounded-xl border-0 bg-[#f1f4f7] px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#1876f2]"
+            rows={2}
+            placeholder="Trigger (vd: hello; hi)"
+            className="min-h-[40px] resize-y rounded-xl border-0 bg-[#f1f4f7] px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#1876f2]"
           />
-          <input
+          <textarea
             value={reply}
             onChange={(e) => setReply(e.target.value)}
+            rows={2}
             placeholder="Nội dung trả lời"
-            className="rounded-xl border-0 bg-[#f1f4f7] px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#1876f2]"
+            className="min-h-[40px] resize-y rounded-xl border-0 bg-[#f1f4f7] px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#1876f2]"
           />
         </div>
         {error && <p className="mt-2 text-sm text-[#b42318]">{error}</p>}
@@ -132,34 +182,92 @@ export default function AutoRepliesPage() {
         <p className="py-8 text-center text-sm text-[#5d6c7b]">Chưa có quy tắc nào.</p>
       ) : (
         <ul className="divide-y divide-[#eef1f4] rounded-2xl border border-[#dee3e9]">
-          {rules.map((r) => (
-            <li key={r._id} className="flex items-center gap-3 px-4 py-3">
-              <div className="min-w-0 flex-1">
-                <div className="truncate text-sm font-semibold text-[#0a1317]">
-                  {r.trigger}
+          {rules.map((r) =>
+            editingId === r._id ? (
+              <li key={r._id} className="px-4 py-3">
+                <div className="grid gap-2 sm:grid-cols-2">
+                  <textarea
+                    value={editTrigger}
+                    onChange={(e) => setEditTrigger(e.target.value)}
+                    rows={2}
+                    placeholder="Trigger (nhiều trigger ngăn bằng ;)"
+                    className="min-h-[40px] resize-y rounded-xl border-0 bg-[#f1f4f7] px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#1876f2]"
+                  />
+                  <textarea
+                    value={editReply}
+                    onChange={(e) => setEditReply(e.target.value)}
+                    rows={2}
+                    placeholder="Nội dung trả lời"
+                    className="min-h-[40px] resize-y rounded-xl border-0 bg-[#f1f4f7] px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#1876f2]"
+                  />
                 </div>
-                <div className="truncate text-sm text-[#5d6c7b]">{r.reply}</div>
-              </div>
-              <button
-                onClick={() => toggle(r)}
-                className={
-                  "shrink-0 rounded-full px-3 py-1 text-xs font-medium " +
-                  (r.enabled
-                    ? "bg-[#e6f4ea] text-[#1a7f37]"
-                    : "bg-[#f1f4f7] text-[#5d6c7b]")
-                }
-              >
-                {r.enabled ? "Bật" : "Tắt"}
-              </button>
-              <button
-                onClick={() => remove(r._id)}
-                aria-label="Xoá"
-                className="shrink-0 text-[#5d6c7b] hover:text-[#b42318]"
-              >
-                <Trash2 className="h-4 w-4" />
-              </button>
-            </li>
-          ))}
+                {editError && <p className="mt-2 text-sm text-[#b42318]">{editError}</p>}
+                <div className="mt-2 flex items-center gap-2">
+                  <button
+                    onClick={() => saveEdit(r._id)}
+                    disabled={editSaving}
+                    className="flex items-center gap-1.5 rounded-full bg-[#0064e0] px-3 py-1.5 text-xs font-semibold text-white hover:bg-[#0457cb] disabled:bg-[#bcc0c4]"
+                  >
+                    {editSaving ? (
+                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                    ) : (
+                      <Check className="h-3.5 w-3.5" />
+                    )}
+                    Lưu
+                  </button>
+                  <button
+                    onClick={cancelEdit}
+                    disabled={editSaving}
+                    className="flex items-center gap-1.5 rounded-full bg-[#f1f4f7] px-3 py-1.5 text-xs font-medium text-[#5d6c7b] hover:bg-[#e4e8ec]"
+                  >
+                    <X className="h-3.5 w-3.5" />
+                    Huỷ
+                  </button>
+                </div>
+              </li>
+            ) : (
+              <li key={r._id} className="flex items-center gap-3 px-4 py-3">
+                <div className="min-w-0 flex-1">
+                  <div className="truncate text-sm font-semibold text-[#0a1317]">
+                    {r.trigger}
+                  </div>
+                  <div className="truncate text-sm text-[#5d6c7b]">{r.reply}</div>
+                </div>
+                <button
+                  type="button"
+                  role="switch"
+                  aria-checked={r.enabled}
+                  aria-label={r.enabled ? "Tắt quy tắc" : "Bật quy tắc"}
+                  onClick={() => toggle(r)}
+                  className={
+                    "relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-[#1876f2] focus:ring-offset-2 " +
+                    (r.enabled ? "bg-[#1a7f37]" : "bg-[#c9d0d8]")
+                  }
+                >
+                  <span
+                    className={
+                      "inline-block h-5 w-5 transform rounded-full bg-white shadow transition-transform " +
+                      (r.enabled ? "translate-x-[22px]" : "translate-x-[2px]")
+                    }
+                  />
+                </button>
+                <button
+                  onClick={() => startEdit(r)}
+                  aria-label="Sửa"
+                  className="shrink-0 text-[#5d6c7b] hover:text-[#0064e0]"
+                >
+                  <Pencil className="h-4 w-4" />
+                </button>
+                <button
+                  onClick={() => remove(r._id)}
+                  aria-label="Xoá"
+                  className="shrink-0 text-[#5d6c7b] hover:text-[#b42318]"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </button>
+              </li>
+            ),
+          )}
         </ul>
       )}
     </div>
