@@ -21,9 +21,25 @@ export interface ConversationDoc {
   note: string;
   /** Ghi chú nhiều người dùng (thread). Mỗi note do 1 nhân viên tạo, tự sửa/xoá. */
   notes?: NoteEntry[];
+  /** Gợi ý AI gần nhất (agree/neutral/apologize + tag). Mirror DORA suggested_messages. */
+  suggested_messages?: AIResponse | null;
   lastMessageDate: number;
   created_at: Date;
   updated_at: Date;
+}
+
+/**
+ * Kết quả gợi ý AI cho 1 hội thoại — mirror utils.AIResponse của DORA (chatgpt.go).
+ * 3 đáp án khác tông + tag phân loại.
+ */
+export interface AIResponse {
+  solutions: string[];
+  message: string;
+  agree: string;
+  neutral: string;
+  apologize: string;
+  suggested_tag?: string;
+  tag_reason?: string;
 }
 
 /** 1 ghi chú lưu trong conversation doc (top-level field `notes`). */
@@ -47,6 +63,22 @@ export interface MessageDoc {
   attachments: string[];
   sender_email: string;
   status: MessageStatus | "";
+  created_at: Date;
+  updated_at: Date;
+}
+
+/**
+ * Collection `auto_reply_messages` — quy tắc tự trả lời.
+ * Mirror dora-backend/models/auto_reply_message.go.
+ * Khớp khi normalized incoming === 1 trong normalized_triggers (so khớp token tuyệt đối).
+ */
+export interface AutoReplyDoc {
+  _id?: ObjectId;
+  email: string;
+  trigger: string;
+  normalized_triggers: string[];
+  reply: string;
+  enabled: boolean;
   created_at: Date;
   updated_at: Date;
 }

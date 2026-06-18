@@ -19,6 +19,7 @@ export async function createOutgoingMessage(
   conversationId: number,
   text: string,
   senderEmail: string,
+  attachments: string[] = [],
 ): Promise<CreatedMessage> {
   const convColl = await getConversationsCollection();
   const msgColl = await getMessagesCollection();
@@ -40,7 +41,7 @@ export async function createOutgoingMessage(
     _id,
     conversation_id: conversationId,
     message: text,
-    attachments: [],
+    attachments,
     sender_email: senderEmail,
     status: "NEW",
     created_at: now,
@@ -60,7 +61,7 @@ export async function createOutgoingMessage(
   try {
     targeted = await publishChatMessage(shopName, {
       conversation_id: conversationId,
-      message: { id: _id.toHexString(), message: text, attachments: [] },
+      message: { id: _id.toHexString(), message: text, attachments },
     });
   } catch (e) {
     console.warn("[send] publishChatMessage error:", (e as Error)?.message);

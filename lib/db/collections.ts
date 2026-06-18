@@ -1,6 +1,6 @@
 import type { Collection, Db } from "mongodb";
 import clientPromise from "@/lib/mongodb-client";
-import type { ConversationDoc, MessageDoc } from "@/lib/types/etsy";
+import type { AutoReplyDoc, ConversationDoc, MessageDoc } from "@/lib/types/etsy";
 import { ensureIndexes } from "@/lib/db/indexes";
 
 // Lazy ensure index một lần cho mỗi process (cache global cho dev hot-reload).
@@ -37,4 +37,9 @@ export async function getConversationsCollection(): Promise<Collection<Conversat
 export async function getMessagesCollection(): Promise<Collection<MessageDoc>> {
   const db = await getDb();
   return db.collection<MessageDoc>("messages");
+}
+
+export async function getAutoRepliesCollection(): Promise<Collection<AutoReplyDoc>> {
+  const db = await getDb();
+  return db.collection<AutoReplyDoc>("auto_reply_messages");
 }

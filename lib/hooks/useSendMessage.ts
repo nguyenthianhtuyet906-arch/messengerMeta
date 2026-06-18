@@ -65,20 +65,21 @@ export function useSendMessage(conversationId: number) {
   );
 
   const send = useCallback(
-    async (text: string) => {
+    async (text: string, attachments: string[] = []) => {
       const trimmed = text.trim();
-      if (!trimmed) return;
+      if (!trimmed && attachments.length === 0) return;
       const localId = `local-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+      const label = trimmed || (attachments.length > 0 ? "🖼️ Đang gửi ảnh…" : "");
       setPending((prev) => [
         ...prev,
-        { localId, serverId: null, text: trimmed, status: "sending" },
+        { localId, serverId: null, text: label, status: "sending" },
       ]);
 
       try {
         const res = await fetch(`/api/conversations/${conversationId}/messages`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ message: trimmed }),
+          body: JSON.stringify({ message: trimmed, attachments }),
         });
         if (!res.ok) {
           markFailed(localId);

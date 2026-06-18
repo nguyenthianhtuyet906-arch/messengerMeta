@@ -3,6 +3,7 @@ import { getMessagesCollection } from "@/lib/db/collections";
 import type { EtsyRaw, MessageDoc } from "@/lib/types/etsy";
 import { asNumber, asString, isObject } from "@/lib/services/etsy-utils";
 import { publishNewMessages } from "@/lib/services/ably-publish";
+import { processIncomingMessages } from "@/lib/services/incoming-actions";
 
 export interface SyncMessagesResult {
   received: number;
@@ -23,6 +24,8 @@ export async function syncMessages(messages: EtsyRaw[]): Promise<SyncMessagesRes
   const ops: AnyBulkWriteOperation<MessageDoc>[] = [];
   // opConvIds[i] = conversation_id của op thứ i (để biết conversation nào có tin mới).
   const opConvIds: number[] = [];
+  // opMsgs[i] = raw Etsy payload của op thứ i (để chạy auto-reply/AI cho tin mới).
+  const opMsgs: EtsyRaw[] = [];
   let skipped = 0;
 
   for (const msg of messages) {
@@ -39,6 +42,7 @@ export async function syncMessages(messages: EtsyRaw[]): Promise<SyncMessagesRes
 
     const conversationId = asNumber(msg["conversation_id"]) ?? 0;
     opConvIds.push(conversationId);
+    opMsgs.push(msg);
 
     ops.push({
       updateOne: {
@@ -66,12 +70,22 @@ export async function syncMessages(messages: EtsyRaw[]): Promise<SyncMessagesRes
 
   // Phát realtime cho mỗi conversation có message MỚI (1 lần/conversation).
   const newConvIds = new Set<number>();
+  const newMsgs: EtsyRaw[] = [];
   for (const idx of Object.keys(res.upsertedIds ?? {})) {
-    const convId = opConvIds[Number(idx)];
+    const i = Number(idx);
+    const convId = opConvIds[i];
     if (convId) newConvIds.add(convId);
+    if (opMsgs[i]) newMsgs.push(opMsgs[i]);
   }
   if (newConvIds.size > 0) {
     await publishNewMessages([...newConvIds]);
+  }
+
+  // Auto-reply + gợi ý AI cho tin mới (port pushNewMessageEvent của DORA). Không chặn response.
+  if (newMsgs.length > 0) {
+    void processIncomingMessages(newMsgs).catch((e) =>
+      console.warn("[message-sync] incoming actions error:", (e as Error)?.message),
+    );
   }
 
   return { received: messages.length, upserted: res.upsertedCount, skipped };

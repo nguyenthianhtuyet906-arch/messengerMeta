@@ -49,13 +49,17 @@ export async function POST(
       return NextResponse.json({ error: "invalid conversation_id" }, { status: 400 });
     }
 
-    const body = (await req.json()) as { message?: string };
+    const body = (await req.json()) as { message?: string; attachments?: string[] };
     const text = (body.message ?? "").trim();
-    if (!text) {
+    const attachments = Array.isArray(body.attachments)
+      ? body.attachments.filter((u): u is string => typeof u === "string" && u !== "")
+      : [];
+    // Cho phép gửi khi chỉ có ảnh (text rỗng) — giống DORA.
+    if (!text && attachments.length === 0) {
       return NextResponse.json({ error: "empty message" }, { status: 400 });
     }
 
-    const created = await createOutgoingMessage(conversationId, text, email);
+    const created = await createOutgoingMessage(conversationId, text, email, attachments);
     return NextResponse.json(created);
   } catch (err) {
     const message = err instanceof Error ? err.message : "Unknown error";

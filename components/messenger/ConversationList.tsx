@@ -1,7 +1,8 @@
 "use client";
 
 import { memo, useEffect, useMemo, useRef, useState } from "react";
-import { Search } from "lucide-react";
+import Link from "next/link";
+import { Search, MessageSquareReply } from "lucide-react";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { useConversations } from "@/lib/hooks/useConversations";
 import { ShopFilter } from "@/components/messenger/ShopFilter";
@@ -160,7 +161,17 @@ export function ConversationList() {
   return (
     <div className="flex w-full max-w-sm flex-col border-r border-[#dee3e9] bg-white md:w-80 lg:w-96">
       <div className="px-5 pt-6 pb-3">
-        <h1 className="text-2xl font-medium tracking-tight text-[#0a1317]">Đoạn chat</h1>
+        <div className="flex items-center justify-between">
+          <h1 className="text-2xl font-medium tracking-tight text-[#0a1317]">Đoạn chat</h1>
+          <Link
+            href="/auto-replies"
+            title="Tự động trả lời"
+            aria-label="Tự động trả lời"
+            className="flex h-9 w-9 items-center justify-center rounded-full text-[#5d6c7b] transition-colors hover:bg-[#f1f4f7]"
+          >
+            <MessageSquareReply className="h-5 w-5" />
+          </Link>
+        </div>
         <div className="relative mt-4">
           <Search className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-[#5d6c7b]" />
           <Input

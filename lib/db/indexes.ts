@@ -59,6 +59,12 @@ const MESSAGE_INDEXES: IndexDef[] = [
   },
 ];
 
+const AUTO_REPLY_INDEXES: IndexDef[] = [
+  // Khớp runtime: lọc enabled=true rồi so token chuẩn hoá; chống trùng trigger.
+  { keys: { enabled: 1 }, options: { name: "idx_enabled" } },
+  { keys: { normalized_triggers: 1 }, options: { name: "idx_normalized_triggers" } },
+];
+
 function isAlreadyExistsError(err: unknown): boolean {
   const msg = err instanceof Error ? err.message : String(err);
   return (
@@ -84,4 +90,5 @@ async function createIndexes(db: Db, collName: string, defs: IndexDef[]): Promis
 export async function ensureIndexes(db: Db): Promise<void> {
   await createIndexes(db, "conversations", CONVERSATION_INDEXES);
   await createIndexes(db, "messages", MESSAGE_INDEXES);
+  await createIndexes(db, "auto_reply_messages", AUTO_REPLY_INDEXES);
 }
