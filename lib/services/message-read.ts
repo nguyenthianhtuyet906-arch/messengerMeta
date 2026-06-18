@@ -26,6 +26,7 @@ const MSG_PROJECTION = {
   "etsy.message_order": 1,
   "etsy.is_system_message": 1,
   "etsy.images": 1,
+  attachments: 1,
   sender_email: 1,
 } as const;
 
@@ -69,9 +70,26 @@ function mapMessage(
   const etsy = doc.etsy ?? {};
   const senderId = asNumber(etsy["sender_id"]) ?? 0;
   const rawImages = etsy["images"];
-  const images = Array.isArray(rawImages)
-    ? rawImages.filter((x): x is string => typeof x === "string")
+  const etsyImages: string[] = [];
+  if (Array.isArray(rawImages)) {
+    for (const img of rawImages) {
+      if (typeof img === "string" && img) {
+        etsyImages.push(img);
+      } else if (img !== null && typeof img === "object") {
+        const o = img as Record<string, unknown>;
+        const imageData = o["image_data"];
+        const url =
+          (imageData !== null && typeof imageData === "object"
+            ? (imageData as Record<string, unknown>)["url"]
+            : null) ?? o["url"];
+        if (typeof url === "string" && url) etsyImages.push(url);
+      }
+    }
+  }
+  const docAttachments = Array.isArray(doc.attachments)
+    ? doc.attachments.filter((x): x is string => typeof x === "string" && x !== "")
     : [];
+  const images = etsyImages.length > 0 ? etsyImages : docAttachments;
   const senderEmail = typeof doc.sender_email === "string" ? doc.sender_email : "";
   const user = senderEmail ? users.get(senderEmail) : undefined;
   return {

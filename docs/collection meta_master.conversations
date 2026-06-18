@@ -1,13 +1,16 @@
+/** 
+* Paste one or more documents here
+*/
 {
   "etsy": {
     "conversation_id": 1636554495,
     "title": "Conversation between Hoang and Hoang",
-    "excerpt": "test trên v0",
+    "excerpt": "1 attachment",
     "is_unread": false,
     "has_attachments": true,
     "has_replied": true,
     "show_never_replied_unread_nudge": false,
-    "message_count": 75,
+    "message_count": 76,
     "timestamp": "Just now",
     "timestamp_short": "1h",
     "conversation_url": "/messages/1636554495",
@@ -38,7 +41,7 @@
       "is_on_vacation": false,
       "is_shop_closed": false,
       "is_giftcard_shop": false,
-      "recipient_shop_age": 108980781,
+      "recipient_shop_age": 109030944,
       "is_new_device": false,
       "is_support_chatbot": false,
       "is_shop_employee": false,
@@ -69,7 +72,7 @@
         "is_on_vacation": false,
         "is_shop_closed": false,
         "is_giftcard_shop": false,
-        "recipient_shop_age": 108980782,
+        "recipient_shop_age": 109030952,
         "is_new_device": false,
         "is_support_chatbot": false,
         "is_shop_employee": false,
@@ -101,37 +104,6 @@
         {
           "message": "test au",
           "conversation_id": 1636554495,
-          "conversation_message_id": 7373630544,
-          "sender_id": 734048488,
-          "create_date": 1781671766,
-          "has_images": false,
-          "message_order": 70,
-          "language": "fr",
-          "is_system_message": false,
-          "message_flags": 0,
-          "is_first_message_of_day": false,
-          "is_last_message_of_day": false,
-          "should_show_timestamp": false,
-          "message_date_short": "Jun 17, 2026",
-          "message_date_day_of_week_short_no_year": "Wed, Jun 17",
-          "message_date_hm_cap": "11:49 AM",
-          "is_more_than_one_year_ago": false,
-          "inline_listing_ids": [],
-          "inline_coupons": [],
-          "message_label": "",
-          "type": "user",
-          "collapsed": true,
-          "message_date_friendly": "13 hours ago",
-          "message_date_hm": "12:49am EDT",
-          "message_date_hm_short": "12:49am",
-          "images": [],
-          "preview": "test au",
-          "show_translation_button": true,
-          "show_app_download_prompt": ""
-        },
-        {
-          "message": "test au",
-          "conversation_id": 1636554495,
           "conversation_message_id": 7447310779,
           "sender_id": 734048488,
           "create_date": 1781672842,
@@ -152,7 +124,7 @@
           "message_label": "",
           "type": "user",
           "collapsed": true,
-          "message_date_friendly": "13 hours ago",
+          "message_date_friendly": "1 day ago",
           "message_date_hm": " 1:07am EDT",
           "message_date_hm_short": " 1:07am",
           "images": [],
@@ -183,7 +155,7 @@
           "message_label": "",
           "type": "user",
           "collapsed": true,
-          "message_date_friendly": "57 minutes ago",
+          "message_date_friendly": "15 hours ago",
           "message_date_hm": "12:41pm EDT",
           "message_date_hm_short": "12:41pm",
           "images": [],
@@ -214,7 +186,7 @@
           "message_label": "",
           "type": "user",
           "collapsed": true,
-          "message_date_friendly": "56 minutes ago",
+          "message_date_friendly": "15 hours ago",
           "message_date_hm": "12:42pm EDT",
           "message_date_hm_short": "12:42pm",
           "images": [],
@@ -245,7 +217,7 @@
           "message_label": "",
           "type": "user",
           "collapsed": true,
-          "message_date_friendly": "30 minutes ago",
+          "message_date_friendly": "14 hours ago",
           "message_date_hm": " 1:08pm EDT",
           "message_date_hm_short": " 1:08pm",
           "images": [],
@@ -265,7 +237,7 @@
           "is_system_message": false,
           "message_flags": 0,
           "is_first_message_of_day": false,
-          "is_last_message_of_day": true,
+          "is_last_message_of_day": false,
           "should_show_timestamp": true,
           "message_date_short": "Jun 17, 2026",
           "message_date_day_of_week_short_no_year": "Thu, Jun 18",
@@ -275,12 +247,76 @@
           "inline_coupons": [],
           "message_label": "",
           "type": "user",
-          "collapsed": false,
-          "message_date_friendly": "Just now",
+          "collapsed": true,
+          "message_date_friendly": "14 hours ago",
           "message_date_hm": " 1:38pm EDT",
           "message_date_hm_short": " 1:38pm",
           "images": [],
           "preview": "test trên v0",
+          "show_translation_button": false,
+          "show_app_download_prompt": ""
+        },
+        {
+          "message": "",
+          "conversation_id": 1636554495,
+          "conversation_message_id": 7376688646,
+          "sender_id": 1103050905,
+          "create_date": 1781768071,
+          "has_images": true,
+          "message_order": 76,
+          "language": "und",
+          "is_system_message": false,
+          "message_flags": 0,
+          "is_first_message_of_day": false,
+          "is_last_message_of_day": true,
+          "should_show_timestamp": true,
+          "message_date_short": "Jun 18, 2026",
+          "message_date_day_of_week_short_no_year": "Thu, Jun 18",
+          "message_date_hm_cap": " 2:34 PM",
+          "is_more_than_one_year_ago": false,
+          "inline_listing_ids": [],
+          "inline_coupons": [],
+          "message_label": "",
+          "type": "user",
+          "collapsed": false,
+          "message_date_friendly": "Just now",
+          "message_date_hm": " 3:34am EDT",
+          "message_date_hm_short": " 3:34am",
+          "images": [
+            {
+              "image_id": 889135868,
+              "conversation_message_id": 7376688646,
+              "create_date": 1781768071,
+              "image_order": 0,
+              "image_data": {
+                "key": "v2_icm_889135868_1103050905_235_0_azurgqttf5s0s40so48g_____1024_472_",
+                "url": "https://i.etsystatic.com/icm/5cbbbe/889135868/icm_fullxfull.889135868_azurgqttf5s0s40so48g.jpg?version=0",
+                "sources": [
+                  {
+                    "width": 472,
+                    "height": 1024,
+                    "url": "https://i.etsystatic.com/icm/5cbbbe/889135868/icm_fullxfull.889135868_azurgqttf5s0s40so48g.jpg?version=0"
+                  },
+                  {
+                    "width": 300,
+                    "height": 300,
+                    "url": "https://i.etsystatic.com/icm/5cbbbe/889135868/icm_300x300.889135868_azurgqttf5s0s40so48g.jpg?version=0"
+                  },
+                  {
+                    "width": 150,
+                    "height": 150,
+                    "url": "https://i.etsystatic.com/icm/5cbbbe/889135868/icm_150x150.889135868_azurgqttf5s0s40so48g.jpg?version=0"
+                  },
+                  {
+                    "width": 75,
+                    "height": 75,
+                    "url": "https://i.etsystatic.com/icm/5cbbbe/889135868/icm_75x75.889135868_azurgqttf5s0s40so48g.jpg?version=0"
+                  }
+                ]
+              }
+            }
+          ],
+          "preview": "",
           "show_translation_button": false,
           "show_app_download_prompt": ""
         }
@@ -302,12 +338,12 @@
       "convo_card": {
         "conversation_id": 1636554495,
         "title": "Conversation between Hoang and Hoang",
-        "excerpt": "test trên v0",
+        "excerpt": "1 attachment",
         "is_unread": false,
         "has_attachments": true,
         "has_replied": true,
         "show_never_replied_unread_nudge": false,
-        "message_count": 75,
+        "message_count": 76,
         "timestamp": "Just now",
         "timestamp_short": "1h",
         "conversation_url": "/messages/1636554495",
@@ -339,7 +375,7 @@
           "is_frozen": true,
           "is_giftcard_shop": false,
           "local_time": "",
-          "recipient_shop_age": 108980782,
+          "recipient_shop_age": 109030952,
           "is_new_device": false,
           "is_shop_employee": false,
           "translation_preferences": null
@@ -469,7 +505,7 @@
       "is_on_vacation": false,
       "is_shop_closed": false,
       "is_giftcard_shop": false,
-      "recipient_shop_age": 30721255,
+      "recipient_shop_age": 30771425,
       "is_new_device": false,
       "is_support_chatbot": false,
       "is_shop_employee": false,
@@ -567,11 +603,11 @@
   "created_at": {
     "$date": "2026-06-17T17:38:01.619Z"
   },
-  "lastMessageDate": 1781717902,
+  "lastMessageDate": 1781768071,
   "note": "",
   "tags": [],
   "updated_at": {
-    "$date": "2026-06-17T17:38:31.363Z"
+    "$date": "2026-06-18T07:34:41.092Z"
   },
   "user_data": {
     "user_id": 1103050905,
@@ -587,7 +623,7 @@
     "is_on_vacation": false,
     "is_shop_closed": false,
     "is_giftcard_shop": false,
-    "recipient_shop_age": 30721254,
+    "recipient_shop_age": 30771417,
     "is_new_device": false,
     "is_support_chatbot": false,
     "is_shop_employee": false,
