@@ -17,6 +17,7 @@ async function fetchConversations(
   if (filters.notReplied) params.set("notReplied", "true");
   if (filters.hasOrder) params.set("hasOrder", "true");
   if (filters.orderHelp) params.set("orderHelp", "true");
+  if (filters.hasNote) params.set("hasNote", "true");
   if (filters.shopIds.length > 0) params.set("shopIds", filters.shopIds.join(","));
   params.set("limit", "30");
   const res = await fetch(`/api/conversations?${params.toString()}`);

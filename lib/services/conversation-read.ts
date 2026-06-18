@@ -80,6 +80,7 @@ export interface ConversationFilterOpts {
   notReplied?: boolean;
   hasOrder?: boolean;
   orderHelp?: boolean;
+  hasNote?: boolean;
   shopIds?: number[];
 }
 
@@ -126,6 +127,11 @@ export async function getConversations(
   // Has Order: buyer có đơn hàng
   if (opts.hasOrder) {
     clauses.push({ "etsy.buyer_info.past_order_history.total_orders": { $gt: 0 } });
+  }
+
+  // Has Note: hội thoại có ≥1 ghi chú (tận dụng sparse index notes.authorEmail)
+  if (opts.hasNote) {
+    clauses.push({ "notes.authorEmail": { $exists: true } });
   }
 
   // Lọc theo shop (user_data.user_id top-level)

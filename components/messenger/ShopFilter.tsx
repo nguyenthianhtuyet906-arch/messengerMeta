@@ -41,7 +41,7 @@ export function ShopFilter({
       <button
         onClick={() => setOpen((v) => !v)}
         className={cn(
-          "flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition-colors",
+          "flex w-full items-center justify-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition-colors",
           selected.length > 0
             ? "border-[#0064e0] bg-[#e7f0fb] text-[#0064e0]"
             : "border-[#dee3e9] text-[#5d6c7b] hover:bg-[#f1f4f7]",

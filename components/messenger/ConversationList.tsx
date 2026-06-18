@@ -77,7 +77,7 @@ const FilterChip = memo(function FilterChip({
     <button
       onClick={onClick}
       className={cn(
-        "shrink-0 rounded-full border px-3 py-1.5 text-xs font-medium transition-colors",
+        "w-full rounded-full border px-3 py-1.5 text-center text-xs font-medium transition-colors",
         active
           ? "border-[#0064e0] bg-[#e7f0fb] text-[#0064e0]"
           : "border-[#dee3e9] text-[#5d6c7b] hover:bg-[#f1f4f7]",
@@ -94,6 +94,7 @@ export function ConversationList() {
   const [orderHelp, setOrderHelp] = useState(false);
   const [notReplied, setNotReplied] = useState(false);
   const [hasOrder, setHasOrder] = useState(false);
+  const [hasNote, setHasNote] = useState(false);
   const [shopIds, setShopIds] = useState<number[]>([]);
   const [bulkLoading, setBulkLoading] = useState(false);
   const { openTab, openMany, activeTabId } = useTabs();
@@ -105,8 +106,8 @@ export function ConversationList() {
   }, [searchInput]);
 
   const filters: ConversationFilters = useMemo(
-    () => ({ search, orderHelp, notReplied, hasOrder, shopIds }),
-    [search, orderHelp, notReplied, hasOrder, shopIds],
+    () => ({ search, orderHelp, notReplied, hasOrder, hasNote, shopIds }),
+    [search, orderHelp, notReplied, hasOrder, hasNote, shopIds],
   );
 
   const { items, data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading } =
@@ -170,8 +171,8 @@ export function ConversationList() {
           />
         </div>
 
-        {/* Bộ lọc */}
-        <div className="mt-3 flex flex-wrap items-center gap-2">
+        {/* Bộ lọc — lưới 3 cột để các nút bằng nhau, cân đối */}
+        <div className="mt-3 grid grid-cols-3 gap-2">
           <FilterChip
             label="Help request"
             active={orderHelp}
@@ -186,6 +187,11 @@ export function ConversationList() {
             label="Has Order"
             active={hasOrder}
             onClick={() => setHasOrder((v) => !v)}
+          />
+          <FilterChip
+            label="Has note"
+            active={hasNote}
+            onClick={() => setHasNote((v) => !v)}
           />
           <ShopFilter selected={shopIds} onChange={setShopIds} />
         </div>

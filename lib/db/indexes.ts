@@ -25,6 +25,11 @@ const CONVERSATION_INDEXES: IndexDef[] = [
     options: { name: "idx_receipt_id" },
   },
   { keys: { "etsy.order_info.order_id": 1 }, options: { name: "idx_order_id" } },
+  // Lọc "Has note": multikey sparse — chỉ index doc có ≥1 note (hỗ trợ truy vấn $exists).
+  {
+    keys: { "notes.authorEmail": 1 },
+    options: { name: "idx_notes_author", sparse: true },
+  },
 ];
 
 const MESSAGE_INDEXES: IndexDef[] = [

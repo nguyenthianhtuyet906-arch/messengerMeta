@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, type KeyboardEvent } from "react";
-import { Send, Info } from "lucide-react";
+import { Send, Info, StickyNote } from "lucide-react";
 import { MessageList } from "@/components/messenger/MessageList";
 import { useSendMessage } from "@/lib/hooks/useSendMessage";
 import type { TabMeta } from "@/lib/store/tabs";
@@ -13,11 +13,15 @@ export function ConversationView({
   meta,
   infoOpen = false,
   onToggleInfo,
+  notesOpen = false,
+  onToggleNotes,
 }: {
   conversationId: number;
   meta?: TabMeta;
   infoOpen?: boolean;
   onToggleInfo?: () => void;
+  notesOpen?: boolean;
+  onToggleNotes?: () => void;
 }) {
   const [draft, setDraft] = useState("");
   const { pending, send } = useSendMessage(conversationId);
@@ -39,29 +43,46 @@ export function ConversationView({
 
   return (
     <div className="flex min-h-0 flex-1 flex-col bg-white">
-      <header className="flex shrink-0 items-center gap-3 border-b border-[#dee3e9] px-6 py-3">
-        <Avatar className="h-10 w-10">
+      <header className="flex shrink-0 items-center gap-2.5 border-b border-[#dee3e9] px-4 py-3">
+        <Avatar className="h-8 w-8">
           {meta?.avatar ? <AvatarImage src={meta.avatar} alt={name} /> : null}
-          <AvatarFallback className="bg-[#e7f0fb] text-[#0064e0] font-bold">
+          <AvatarFallback className="bg-[#e7f0fb] text-xs font-bold text-[#0064e0]">
             {initials(name)}
           </AvatarFallback>
         </Avatar>
         <h2 className="font-bold leading-tight text-[#0a1317]">{name}</h2>
-        {onToggleInfo ? (
-          <button
-            onClick={onToggleInfo}
-            aria-label="Lịch sử đơn hàng"
-            aria-pressed={infoOpen}
-            className={
-              "ml-auto flex h-10 w-10 shrink-0 items-center justify-center rounded-full transition-colors " +
-              (infoOpen
-                ? "bg-[#e7f0fb] text-[#0064e0]"
-                : "text-[#5d6c7b] hover:bg-[#f1f4f7]")
-            }
-          >
-            <Info className="h-5 w-5" />
-          </button>
-        ) : null}
+        <div className="ml-auto flex shrink-0 items-center gap-1">
+          {onToggleNotes ? (
+            <button
+              onClick={onToggleNotes}
+              aria-label="Ghi chú"
+              aria-pressed={notesOpen}
+              className={
+                "flex h-8 w-8 items-center justify-center rounded-full transition-colors " +
+                (notesOpen
+                  ? "bg-[#e7f0fb] text-[#0064e0]"
+                  : "text-[#5d6c7b] hover:bg-[#f1f4f7]")
+              }
+            >
+              <StickyNote className="h-4 w-4" />
+            </button>
+          ) : null}
+          {onToggleInfo ? (
+            <button
+              onClick={onToggleInfo}
+              aria-label="Lịch sử đơn hàng"
+              aria-pressed={infoOpen}
+              className={
+                "flex h-8 w-8 items-center justify-center rounded-full transition-colors " +
+                (infoOpen
+                  ? "bg-[#e7f0fb] text-[#0064e0]"
+                  : "text-[#5d6c7b] hover:bg-[#f1f4f7]")
+              }
+            >
+              <Info className="h-4 w-4" />
+            </button>
+          ) : null}
+        </div>
       </header>
 
       <MessageList conversationId={conversationId} pending={pending} />

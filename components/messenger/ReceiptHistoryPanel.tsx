@@ -91,7 +91,7 @@ export function ReceiptHistoryPanel({
   const receipts = data?.receiptHistory ?? [];
 
   return (
-    <aside className="hidden w-80 shrink-0 flex-col border-l border-[#dee3e9] bg-white lg:flex">
+    <aside className="flex h-full w-full flex-col border-l border-[#dee3e9] bg-white">
       <header className="flex shrink-0 items-center justify-between border-b border-[#dee3e9] px-4 py-3">
         <h3 className="font-bold text-[#0a1317]">Lịch sử đơn hàng</h3>
         {onClose ? (

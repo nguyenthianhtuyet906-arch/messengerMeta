@@ -13,6 +13,7 @@ export async function GET(req: NextRequest) {
       notReplied: sp.get("notReplied") === "true",
       hasOrder: sp.get("hasOrder") === "true",
       orderHelp: sp.get("orderHelp") === "true",
+      hasNote: sp.get("hasNote") === "true",
       shopIds: shopIdsRaw
         ? shopIdsRaw.split(",").map(Number).filter(Number.isFinite)
         : undefined,

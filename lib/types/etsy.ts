@@ -19,9 +19,20 @@ export interface ConversationDoc {
   user_data?: EtsyRaw | null;
   tags: string[];
   note: string;
+  /** Ghi chú nhiều người dùng (thread). Mỗi note do 1 nhân viên tạo, tự sửa/xoá. */
+  notes?: NoteEntry[];
   lastMessageDate: number;
   created_at: Date;
   updated_at: Date;
+}
+
+/** 1 ghi chú lưu trong conversation doc (top-level field `notes`). */
+export interface NoteEntry {
+  id: string;
+  authorEmail: string;
+  body: string;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 /**
@@ -97,7 +108,28 @@ export interface ConversationFilters {
   notReplied: boolean;
   hasOrder: boolean;
   orderHelp: boolean;
+  hasNote: boolean;
   shopIds: number[];
+}
+
+/** 1 ghi chú trả về client (đã join tên/avatar tác giả). */
+export interface NoteItem {
+  id: string;
+  body: string;
+  authorEmail: string;
+  authorName: string;
+  authorAvatar: string;
+  /** unix seconds (để tái dùng timeAgo). */
+  createdAt: number;
+  updatedAt: number;
+  /** true nếu note thuộc về user đang đăng nhập (được phép sửa/xoá). */
+  mine: boolean;
+}
+
+/** Phản hồi danh sách ghi chú của 1 hội thoại. */
+export interface NotesResponse {
+  conversationId: number;
+  items: NoteItem[];
 }
 
 /** Phản hồi list có cursor để load tiếp. */

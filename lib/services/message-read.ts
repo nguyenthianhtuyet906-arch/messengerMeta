@@ -29,13 +29,13 @@ const MSG_PROJECTION = {
   sender_email: 1,
 } as const;
 
-interface UserInfo {
+export interface UserInfo {
   name: string;
   image: string;
 }
 
 /** Map email → thông tin nhân viên (từ collection users của next-auth, ở db mặc định). */
-async function getUsersByEmail(emails: string[]): Promise<Map<string, UserInfo>> {
+export async function getUsersByEmail(emails: string[]): Promise<Map<string, UserInfo>> {
   const map = new Map<string, UserInfo>();
   if (emails.length === 0) return map;
   // users do next-auth adapter ghi vào cùng db meta_local (xem auth.ts).
