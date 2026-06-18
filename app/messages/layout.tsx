@@ -6,6 +6,7 @@ import { ConversationList } from "@/components/messenger/ConversationList";
 import { TabBar } from "@/components/messenger/TabBar";
 import { ChatPanel } from "@/components/messenger/ChatPanel";
 import { UrlSync } from "@/components/messenger/RouteSync";
+import { PendingOpenSync } from "@/components/messenger/PendingOpenSync";
 import { useRealtimeMessages } from "@/lib/hooks/useRealtimeMessages";
 
 function RealtimeBridge() {
@@ -35,6 +36,7 @@ export default function MessagesLayout({ children }: { children: React.ReactNode
       <RealtimeBridge />
       <TabHotkeys />
       <UrlSync />
+      <PendingOpenSync />
       {/* children = page sync deep-link (không render gì hiển thị). */}
       {children}
       <div className="flex h-full">

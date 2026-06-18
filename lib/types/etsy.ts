@@ -235,3 +235,88 @@ export interface MessageListResponse {
   items: MessageItem[];
   nextCursor: string | null;
 }
+
+// ---- DTO Dashboard / Analytics ----
+
+/** Bộ lọc chung cho các API analytics (from/to là unix giây; rỗng = All Time). */
+export interface AnalyticsFilters {
+  from: number | null;
+  to: number | null;
+  shopIds: number[];
+}
+
+/** 1 hội thoại chưa trả lời (rút gọn) — dùng cho dropdown + nút mở nhiều tab. */
+export interface UnreadConvItem {
+  conversationId: number;
+  name: string;
+  avatar: string;
+  lastMessageDate: number;
+}
+
+/** Tổng quan 3 thẻ (Total/Unread/Completed). */
+export interface OverviewTotals {
+  total: number;
+  unread: number;
+  completed: number;
+}
+
+/** 1 dòng shop trong Message Overview. */
+export interface ShopOverviewRow {
+  shopId: number;
+  shopName: string;
+  online: boolean;
+  total: number;
+  unread: number;
+  completed: number;
+  unreadConversations: UnreadConvItem[];
+}
+
+/** Phản hồi GET /api/analytics/overview. */
+export interface MessageOverviewResponse {
+  totals: OverviewTotals;
+  shopBreakdown: ShopOverviewRow[];
+}
+
+/** 1 dòng chỉ số shop (Phân tích shop). */
+export interface ShopMetricRow {
+  shopId: number;
+  shopName: string;
+  /** Số hội thoại trong khoảng. */
+  conversations: number;
+  /** Số đơn (distinct transaction_id trong receipt_history của khách). */
+  orders: number;
+}
+
+/** Chỉ số có thể vẽ biểu đồ trong panel Phân tích shop. */
+export type ShopMetricKey = "conversations" | "orders";
+
+/** Phản hồi GET /api/analytics/shops. */
+export interface ShopAnalyticsResponse {
+  items: ShopMetricRow[];
+}
+
+/** 1 dòng nhân viên trong Agent Performance (tạm chỉ đếm tin nhắn). */
+export interface AgentPerfRow {
+  senderEmail: string;
+  messageCount: number;
+}
+
+/** Phản hồi GET /api/analytics/agent-performance. */
+export interface AgentPerformanceResponse {
+  items: AgentPerfRow[];
+}
+
+/** 1 dòng tag trong Tags Overview. `untagged=true` là bucket "No Tag". */
+export interface TagOverviewRow {
+  tag: string;
+  untagged: boolean;
+  total: number;
+  unread: number;
+  unreadConversations: UnreadConvItem[];
+}
+
+/** Phản hồi GET /api/analytics/tags-overview. */
+export interface TagsOverviewResponse {
+  totals: OverviewTotals;
+  tags: TagOverviewRow[];
+}
