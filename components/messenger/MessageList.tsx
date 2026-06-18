@@ -1,6 +1,7 @@
 "use client";
 
-import { memo, useEffect, useLayoutEffect, useRef } from "react";
+import { memo, useEffect, useLayoutEffect, useRef, useState, useCallback } from "react";
+import { createPortal } from "react-dom";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { useMessages } from "@/lib/hooks/useMessages";
 import type { MessageItem, PendingMessage } from "@/lib/types/etsy";
@@ -8,7 +9,43 @@ import { etsyText, initials, timeAgo } from "@/lib/format";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
 
-const Bubble = memo(function Bubble({ m }: { m: MessageItem }) {
+function ImageLightbox({ src, onClose }: { src: string; onClose: () => void }) {
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
+    document.addEventListener("keydown", handler);
+    return () => document.removeEventListener("keydown", handler);
+  }, [onClose]);
+
+  return createPortal(
+    <div
+      className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/75 backdrop-blur-sm"
+      onClick={onClose}
+    >
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src={src}
+        alt=""
+        className="max-h-[90vh] max-w-[90vw] rounded-xl object-contain drop-shadow-2xl"
+        onClick={(e) => e.stopPropagation()}
+      />
+      <button
+        className="absolute right-5 top-5 flex h-10 w-10 items-center justify-center rounded-full bg-black/40 text-lg text-white backdrop-blur-sm transition hover:bg-black/60"
+        onClick={onClose}
+      >
+        ✕
+      </button>
+    </div>,
+    document.body,
+  );
+}
+
+const Bubble = memo(function Bubble({
+  m,
+  onOpenImage,
+}: {
+  m: MessageItem;
+  onOpenImage: (src: string) => void;
+}) {
   if (m.isSystem) {
     return (
       <div className="my-1 flex justify-center px-6">
@@ -18,19 +55,33 @@ const Bubble = memo(function Bubble({ m }: { m: MessageItem }) {
       </div>
     );
   }
+
+  const hasText = m.message.trim().length > 0;
+  const hasImages = m.images.length > 0;
+
   const bubble = (
-    <div
-      className={cn(
-        "max-w-full rounded-3xl px-4 py-2.5 text-sm leading-relaxed whitespace-pre-wrap break-words",
-        m.fromMe ? "bg-[#0064e0] text-white" : "bg-[#f1f4f7] text-[#0a1317]",
+    <div className={cn("max-w-full", hasText && hasImages ? "flex flex-col gap-1" : "")}>
+      {hasText && (
+        <div
+          className={cn(
+            "rounded-3xl px-4 py-2.5 text-sm leading-relaxed whitespace-pre-wrap break-words",
+            m.fromMe ? "bg-[#0064e0] text-white" : "bg-[#f1f4f7] text-[#0a1317]",
+          )}
+        >
+          {etsyText(m.message)}
+        </div>
       )}
-    >
-      {etsyText(m.message)}
-      {m.images.length > 0 && (
-        <div className="mt-2 flex flex-wrap gap-2">
+      {hasImages && (
+        <div className={cn("flex flex-wrap gap-1.5", m.fromMe ? "justify-end" : "justify-start")}>
           {m.images.map((src, i) => (
             // eslint-disable-next-line @next/next/no-img-element
-            <img key={i} src={src} alt="" className="h-32 w-32 rounded-lg object-cover" />
+            <img
+              key={i}
+              src={src}
+              alt=""
+              className="max-h-60 max-w-xs cursor-zoom-in rounded-2xl object-cover shadow-sm transition hover:opacity-90"
+              onClick={() => onOpenImage(src)}
+            />
           ))}
         </div>
       )}
@@ -45,7 +96,6 @@ const Bubble = memo(function Bubble({ m }: { m: MessageItem }) {
     );
   }
 
-  // Tin gửi đi: avatar + tên nhân viên gửi + thời gian (biết ai đã xử lý).
   return (
     <div className="flex flex-col items-end px-6 py-1">
       <div className="flex max-w-[75%] items-end gap-2">
@@ -95,6 +145,10 @@ export function MessageList({
   const { items, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading } =
     useMessages(conversationId);
 
+  const [lightboxSrc, setLightboxSrc] = useState<string | null>(null);
+  const openImage = useCallback((src: string) => setLightboxSrc(src), []);
+  const closeImage = useCallback(() => setLightboxSrc(null), []);
+
   const parentRef = useRef<HTMLDivElement>(null);
   const prevLenRef = useRef(0);
   const fetchingOlderRef = useRef(false);
@@ -123,15 +177,12 @@ export function MessageList({
     }
 
     if (!didInitialScrollRef.current && items.length > 0) {
-      // Lần đầu: nhảy xuống tin mới nhất.
       virtualizer.scrollToIndex(items.length - 1, { align: "end" });
       didInitialScrollRef.current = true;
     } else if (fetchingOlderRef.current) {
-      // Vừa prepend tin cũ: giữ item đang xem tại chỗ.
       virtualizer.scrollToIndex(added, { align: "start" });
       fetchingOlderRef.current = false;
     } else {
-      // Tin mới đến: cuộn xuống đáy.
       virtualizer.scrollToIndex(items.length - 1, { align: "end" });
     }
     prevLenRef.current = items.length;
@@ -157,44 +208,47 @@ export function MessageList({
   const empty = !isLoading && items.length === 0 && pending.length === 0;
 
   return (
-    <div ref={parentRef} className="min-h-0 flex-1 overflow-y-auto bg-white py-4">
-      {isLoading ? (
-        <p className="py-8 text-center text-sm text-[#5d6c7b]">Đang tải tin nhắn…</p>
-      ) : empty ? (
-        <p className="py-8 text-center text-sm text-[#5d6c7b]">Chưa có tin nhắn.</p>
-      ) : (
-        <>
-          <div style={{ height: virtualizer.getTotalSize(), position: "relative" }}>
-            {isFetchingNextPage && (
-              <div className="absolute left-0 top-0 w-full text-center text-xs text-[#5d6c7b]">
-                Đang tải tin cũ…
-              </div>
-            )}
-            {virtualItems.map((v) => {
-              const m = items[v.index];
-              return (
-                <div
-                  key={m.id}
-                  ref={virtualizer.measureElement}
-                  data-index={v.index}
-                  style={{
-                    position: "absolute",
-                    top: 0,
-                    left: 0,
-                    width: "100%",
-                    transform: `translateY(${v.start}px)`,
-                  }}
-                >
-                  <Bubble m={m} />
+    <>
+      <div ref={parentRef} className="min-h-0 flex-1 overflow-y-auto bg-white py-4">
+        {isLoading ? (
+          <p className="py-8 text-center text-sm text-[#5d6c7b]">Đang tải tin nhắn…</p>
+        ) : empty ? (
+          <p className="py-8 text-center text-sm text-[#5d6c7b]">Chưa có tin nhắn.</p>
+        ) : (
+          <>
+            <div style={{ height: virtualizer.getTotalSize(), position: "relative" }}>
+              {isFetchingNextPage && (
+                <div className="absolute left-0 top-0 w-full text-center text-xs text-[#5d6c7b]">
+                  Đang tải tin cũ…
                 </div>
-              );
-            })}
-          </div>
-          {pending.map((p) => (
-            <PendingBubble key={p.localId} p={p} />
-          ))}
-        </>
-      )}
-    </div>
+              )}
+              {virtualItems.map((v) => {
+                const m = items[v.index];
+                return (
+                  <div
+                    key={m.id}
+                    ref={virtualizer.measureElement}
+                    data-index={v.index}
+                    style={{
+                      position: "absolute",
+                      top: 0,
+                      left: 0,
+                      width: "100%",
+                      transform: `translateY(${v.start}px)`,
+                    }}
+                  >
+                    <Bubble m={m} onOpenImage={openImage} />
+                  </div>
+                );
+              })}
+            </div>
+            {pending.map((p) => (
+              <PendingBubble key={p.localId} p={p} />
+            ))}
+          </>
+        )}
+      </div>
+      {lightboxSrc && <ImageLightbox src={lightboxSrc} onClose={closeImage} />}
+    </>
   );
 }
