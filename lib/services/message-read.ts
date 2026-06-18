@@ -60,12 +60,16 @@ const CONV_HEADER_PROJECTION = {
   "etsy.other_user": 1,
   "etsy.buyer_info.buyer_profile": 1,
   "user_data.user_id": 1,
+  "user_data.shop_name": 1,
+  "user_data.shop_avatar_url": 1,
+  "user_data.avatar_url": 1,
 } as const;
 
 function mapMessage(
   doc: WithId<MessageDoc>,
   shopUserId: number,
   users: Map<string, UserInfo>,
+  shop: { name: string; avatar: string },
 ): MessageItem {
   const etsy = doc.etsy ?? {};
   const senderId = asNumber(etsy["sender_id"]) ?? 0;
@@ -92,18 +96,23 @@ function mapMessage(
   const images = etsyImages.length > 0 ? etsyImages : docAttachments;
   const senderEmail = typeof doc.sender_email === "string" ? doc.sender_email : "";
   const user = senderEmail ? users.get(senderEmail) : undefined;
+  const fromMe = shopUserId !== 0 && senderId === shopUserId;
+  // Tin của shop nhưng gửi thẳng từ Etsy (không có nhân viên/sender_email) →
+  // dùng tên & avatar của shop thay cho fallback "?".
+  const senderName = user?.name ?? (senderEmail ? senderEmail.split("@")[0] : "");
+  const senderAvatar = user?.image ?? "";
   return {
     id: String(etsy["conversation_message_id"] ?? doc._id.toHexString()),
     message: decodeHtmlEntities(asString(etsy["message"])),
     senderId,
-    fromMe: shopUserId !== 0 && senderId === shopUserId,
+    fromMe,
     createDate: asNumber(etsy["create_date"]) ?? 0,
     messageOrder: asNumber(etsy["message_order"]) ?? 0,
     isSystem: etsy["is_system_message"] === true,
     images,
     senderEmail,
-    senderName: user?.name ?? (senderEmail ? senderEmail.split("@")[0] : ""),
-    senderAvatar: user?.image ?? "",
+    senderName: senderName || (fromMe ? shop.name : ""),
+    senderAvatar: senderAvatar || (fromMe ? shop.avatar : ""),
   };
 }
 
@@ -122,6 +131,10 @@ export async function getConversationMessages(opts: {
   )) as WithId<ConversationDoc> | null;
 
   const shopUserId = conv ? firstNumber(conv, ["user_data.user_id"]) ?? 0 : 0;
+  const shop = {
+    name: conv ? firstString(conv, ["user_data.shop_name"]) : "",
+    avatar: conv ? firstString(conv, ["user_data.shop_avatar_url", "user_data.avatar_url"]) : "",
+  };
   const name = conv
     ? decodeHtmlEntities(
         firstString(conv.etsy ?? {}, [
@@ -171,7 +184,7 @@ export async function getConversationMessages(opts: {
   const users = await getUsersByEmail(emails);
 
   // Đảo về thứ tự tăng dần (cũ → mới) để hiển thị.
-  const items = page.map((d) => mapMessage(d, shopUserId, users)).reverse();
+  const items = page.map((d) => mapMessage(d, shopUserId, users, shop)).reverse();
 
   return {
     conversationId: opts.conversationId,

@@ -1,6 +1,13 @@
 "use client";
 
-import { useRef, useState, type ChangeEvent, type KeyboardEvent } from "react";
+import {
+  useLayoutEffect,
+  useRef,
+  useState,
+  type ChangeEvent,
+  type ClipboardEvent,
+  type KeyboardEvent,
+} from "react";
 import { Send, Info, StickyNote, Paperclip, X, Loader2, Sparkles } from "lucide-react";
 import { MessageList } from "@/components/messenger/MessageList";
 import { useSendMessage } from "@/lib/hooks/useSendMessage";
@@ -28,8 +35,20 @@ export function ConversationView({
   const [attachments, setAttachments] = useState<string[]>([]);
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
   const { pending, send } = useSendMessage(conversationId);
   const name = meta?.name || `#${conversationId}`;
+
+  // Tự cao theo nội dung: thu về 0 để đo đúng, cap ở MAX, chỉ bật cuộn khi tràn.
+  useLayoutEffect(() => {
+    const el = textareaRef.current;
+    if (!el) return;
+    const MAX = 128; // = max-h-32
+    el.style.height = "0px";
+    const next = Math.min(el.scrollHeight, MAX);
+    el.style.height = `${next}px`;
+    el.style.overflowY = el.scrollHeight > MAX ? "auto" : "hidden";
+  }, [draft]);
 
   const submit = () => {
     const text = draft.trim();
@@ -41,15 +60,20 @@ export function ConversationView({
   };
 
   const onKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
+    // Ctrl/Cmd + Enter → gọi gợi ý AI.
+    if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) {
+      e.preventDefault();
+      setAiOpen(true);
+      void fetchAI();
+      return;
+    }
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       submit();
     }
   };
 
-  const onPickFiles = async (e: ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(e.target.files ?? []);
-    if (fileInputRef.current) fileInputRef.current.value = "";
+  const uploadFiles = async (files: File[]) => {
     if (files.length === 0) return;
     setUploading(true);
     try {
@@ -67,6 +91,23 @@ export function ConversationView({
     } finally {
       setUploading(false);
     }
+  };
+
+  const onPickFiles = (e: ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files ?? []);
+    if (fileInputRef.current) fileInputRef.current.value = "";
+    void uploadFiles(files);
+  };
+
+  // Dán ảnh (Ctrl+V) trong ô chat → upload như đính kèm.
+  const onPaste = (e: ClipboardEvent<HTMLTextAreaElement>) => {
+    const imageFiles = Array.from(e.clipboardData?.items ?? [])
+      .filter((it) => it.kind === "file" && it.type.startsWith("image/"))
+      .map((it) => it.getAsFile())
+      .filter((f): f is File => f !== null);
+    if (imageFiles.length === 0) return;
+    e.preventDefault();
+    void uploadFiles(imageFiles);
   };
 
   const removeAttachment = (url: string) =>
@@ -262,12 +303,14 @@ export function ConversationView({
             <Paperclip className="h-5 w-5" />
           </button>
           <textarea
+            ref={textareaRef}
             value={draft}
             onChange={(e) => setDraft(e.target.value)}
             onKeyDown={onKeyDown}
+            onPaste={onPaste}
             rows={1}
-            placeholder="Nhập tin nhắn… (Enter để gửi, Shift+Enter xuống dòng)"
-            className="max-h-32 flex-1 resize-none rounded-2xl border-0 bg-[#f1f4f7] px-4 py-2.5 text-sm text-[#0a1317] placeholder:text-[#9aa6b2] focus:outline-none focus:ring-2 focus:ring-[#1876f2]"
+            placeholder="Nhập tin nhắn… (Enter gửi · Shift+Enter xuống dòng · Ctrl+Enter gợi ý AI)"
+            className="chat-input-scroll max-h-32 flex-1 resize-none overflow-y-hidden rounded-2xl border-0 bg-[#f1f4f7] px-4 py-2.5 text-sm leading-relaxed text-[#0a1317] placeholder:text-[#9aa6b2] focus:outline-none focus:ring-2 focus:ring-[#1876f2]"
           />
           <button
             onClick={toggleAi}

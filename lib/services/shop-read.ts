@@ -26,7 +26,12 @@ export async function getShops(): Promise<ShopItem[]> {
     ])
     .toArray();
 
-  const online = await getOnlineShopNames();
+  let online = new Set<string>();
+  try {
+    online = await getOnlineShopNames();
+  } catch {
+    // Ably không khả dụng → tất cả hiển thị offline, không ẩn shop nào.
+  }
 
   const shops: ShopItem[] = [];
   for (const r of rows) {
@@ -42,5 +47,12 @@ export async function getShops(): Promise<ShopItem[]> {
       online: online.has(shopName),
     });
   }
+
+  // Online lên đầu, offline xuống dưới.
+  shops.sort((a, b) => {
+    if (a.online !== b.online) return a.online ? -1 : 1;
+    return a.shopName.localeCompare(b.shopName);
+  });
+
   return shops;
 }

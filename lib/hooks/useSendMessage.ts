@@ -40,8 +40,13 @@ export function useSendMessage(conversationId: number) {
           if (res.ok) {
             const msg = (await res.json()) as { status?: string };
             if (msg.status === "DONE") {
+              // Refetch xong rồi mới gỡ bubble tạm → tránh tin nhắn biến mất
+              // rồi hiện lại (khoảng trống giữa lúc gỡ và lúc tin thật về).
+              await queryClient.refetchQueries({
+                queryKey: ["messages", conversationId],
+              });
+              if (!mounted.current) return;
               remove(localId);
-              queryClient.invalidateQueries({ queryKey: ["messages", conversationId] });
               queryClient.invalidateQueries({ queryKey: ["conversations"] });
               return;
             }

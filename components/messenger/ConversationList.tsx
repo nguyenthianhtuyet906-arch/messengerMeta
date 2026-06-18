@@ -10,7 +10,7 @@ import { useTabs } from "@/lib/store/tabs";
 import type { ConversationFilters, ConversationListItem } from "@/lib/types/etsy";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
-import { initials, formatTime } from "@/lib/format";
+import { initials, timeAgo } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
 const ROW_HEIGHT = 76;
@@ -44,7 +44,7 @@ const Row = memo(function Row({
             {c.name || `#${c.conversationId}`}
           </span>
           <span className="shrink-0 text-xs text-[#5d6c7b]">
-            {formatTime(c.lastMessageDate)}
+            {timeAgo(c.lastMessageDate)}
           </span>
         </div>
         <div className="flex items-center justify-between gap-2">

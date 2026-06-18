@@ -42,9 +42,13 @@ function ImageLightbox({ src, onClose }: { src: string; onClose: () => void }) {
 const Bubble = memo(function Bubble({
   m,
   onOpenImage,
+  buyerName,
+  buyerAvatar,
 }: {
   m: MessageItem;
   onOpenImage: (src: string) => void;
+  buyerName: string;
+  buyerAvatar: string;
 }) {
   if (m.isSystem) {
     return (
@@ -90,8 +94,19 @@ const Bubble = memo(function Bubble({
 
   if (!m.fromMe) {
     return (
-      <div className="flex justify-start px-6 py-1">
-        <div className="max-w-[70%]">{bubble}</div>
+      <div className="flex flex-col items-start px-6 py-1">
+        <div className="flex max-w-[75%] items-end gap-2">
+          <Avatar className="h-7 w-7 shrink-0" title={buyerName}>
+            {buyerAvatar ? <AvatarImage src={buyerAvatar} alt={buyerName} /> : null}
+            <AvatarFallback className="bg-[#eef1f4] text-[10px] font-bold text-[#5d6c7b]">
+              {initials(buyerName || "?")}
+            </AvatarFallback>
+          </Avatar>
+          <div className="min-w-0">{bubble}</div>
+        </div>
+        <span className="ml-9 mt-0.5 text-[11px] text-[#9aa6b2]">
+          {timeAgo(m.createDate)}
+        </span>
       </div>
     );
   }
@@ -117,7 +132,7 @@ const Bubble = memo(function Bubble({
 
 const PendingBubble = memo(function PendingBubble({ p }: { p: PendingMessage }) {
   return (
-    <div className="flex justify-end px-6 py-1">
+    <div className="flex flex-col items-end px-6 py-1">
       <div
         className={cn(
           "max-w-[70%] rounded-3xl px-4 py-2.5 text-sm leading-relaxed whitespace-pre-wrap break-words",
@@ -127,10 +142,10 @@ const PendingBubble = memo(function PendingBubble({ p }: { p: PendingMessage }) 
         )}
       >
         {p.text}
-        <span className="mt-1 block text-[10px] opacity-80">
-          {p.status === "failed" ? "Gửi thất bại" : "Đang gửi…"}
-        </span>
       </div>
+      <span className="mt-0.5 text-[11px] text-[#9aa6b2]">
+        {p.status === "failed" ? "Gửi thất bại" : "Đang gửi…"}
+      </span>
     </div>
   );
 });
@@ -142,7 +157,7 @@ export function MessageList({
   conversationId: number;
   pending?: PendingMessage[];
 }) {
-  const { items, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading } =
+  const { items, name, avatar, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading } =
     useMessages(conversationId);
 
   const [lightboxSrc, setLightboxSrc] = useState<string | null>(null);
@@ -237,7 +252,12 @@ export function MessageList({
                       transform: `translateY(${v.start}px)`,
                     }}
                   >
-                    <Bubble m={m} onOpenImage={openImage} />
+                    <Bubble
+                      m={m}
+                      onOpenImage={openImage}
+                      buyerName={name}
+                      buyerAvatar={avatar}
+                    />
                   </div>
                 );
               })}

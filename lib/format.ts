@@ -31,7 +31,10 @@ export function timeAgo(unixSeconds: number): string {
   if (h < 24) return `${h} giờ trước`;
   const d = Math.floor(h / 24);
   if (d < 7) return `${d} ngày trước`;
-  return new Date(unixSeconds * 1000).toLocaleDateString("vi-VN");
+  return new Date(unixSeconds * 1000).toLocaleDateString("vi-VN", {
+    day: "2-digit",
+    month: "2-digit",
+  });
 }
 
 /** Format giờ/ngày từ unix seconds. */
