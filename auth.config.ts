@@ -1,13 +1,10 @@
 import type { NextAuthConfig } from "next-auth";
-import Google from "next-auth/providers/google";
 
+// Minimal config cho middleware (edge runtime) — chỉ verify JWT, không có provider.
+// Providers cần network (Google OIDC discovery) không được import ở đây để tránh
+// mỗi request phải fetch accounts.google.com/.well-known/openid-configuration.
 export const authConfig: NextAuthConfig = {
-  providers: [
-    Google({
-      clientId: process.env.AUTH_GOOGLE_ID,
-      clientSecret: process.env.AUTH_GOOGLE_SECRET,
-    }),
-  ],
+  providers: [],
   pages: {
     signIn: "/login",
   },
