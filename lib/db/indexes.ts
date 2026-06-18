@@ -19,6 +19,12 @@ const CONVERSATION_INDEXES: IndexDef[] = [
     options: { name: "idx_lastMessageDate_id" },
   },
   { keys: { updated_at: -1 }, options: { name: "idx_updated_at" } },
+  // Tìm theo số đơn hàng: khớp receipt_id (multikey, trong mảng receipt_history) và order_id.
+  {
+    keys: { "etsy.buyer_info.receipt_history.receipt_id": 1 },
+    options: { name: "idx_receipt_id" },
+  },
+  { keys: { "etsy.order_info.order_id": 1 }, options: { name: "idx_order_id" } },
 ];
 
 const MESSAGE_INDEXES: IndexDef[] = [
@@ -33,6 +39,19 @@ const MESSAGE_INDEXES: IndexDef[] = [
     options: { name: "idx_conv_message_order" },
   },
   { keys: { conversation_id: 1 }, options: { name: "idx_conversation_id" } },
+  // Tìm theo nội dung tin nhắn. Mỗi collection chỉ 1 text index; nội dung ở etsy.message
+  // (top-level `message` chỉ set lúc insert, không cập nhật).
+  // default_language "none": không stem/stopword → khớp token thô, hợp với đa ngôn ngữ + số đơn.
+  // language_override trỏ field không tồn tại để BỎ QUA field `language` của payload Etsy
+  // (vd "pl") — nếu không Mongo coi đó là ngôn ngữ/doc và build index thất bại.
+  {
+    keys: { "etsy.message": "text" },
+    options: {
+      name: "txt_etsy_message",
+      default_language: "none",
+      language_override: "_tlang",
+    },
+  },
 ];
 
 function isAlreadyExistsError(err: unknown): boolean {

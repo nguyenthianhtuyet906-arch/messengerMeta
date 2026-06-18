@@ -11,6 +11,7 @@ import {
   firstNumber,
   firstString,
 } from "@/lib/services/etsy-utils";
+import { buildSearchClause } from "@/lib/services/search";
 
 // Projection: chỉ lấy subfield cần cho sidebar, TRÁNH kéo nguyên blob etsy
 // (buyer_info.receipt_history, coupons, detail.messages... rất nặng).
@@ -101,17 +102,16 @@ export async function getConversations(
     });
   }
 
+  // Tìm theo tên / nội dung tin nhắn / số đơn hàng (auto-detect, xem search.ts).
   const search = opts.search?.trim();
   if (search) {
-    const rx = { $regex: search, $options: "i" };
-    clauses.push({
-      $or: [
-        { "etsy.other_user.display_name": rx },
-        { "etsy.buyer_info.buyer_profile.display_name": rx },
-        { "etsy.title": rx },
-        { "etsy.excerpt": rx },
-      ],
-    });
+    const sc = await buildSearchClause(search);
+    if (sc) {
+      clauses.push(sc);
+    } else {
+      // Có search nhưng không khớp gì → trả rỗng (tránh hiện toàn bộ danh sách).
+      clauses.push({ _id: null });
+    }
   }
 
   // Help request

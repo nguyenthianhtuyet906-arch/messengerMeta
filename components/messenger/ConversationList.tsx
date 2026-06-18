@@ -165,7 +165,7 @@ export function ConversationList() {
           <Input
             value={searchInput}
             onChange={(e) => setSearchInput(e.target.value)}
-            placeholder="Tìm kiếm trên EtsyChat"
+            placeholder="Tìm tên, nội dung tin nhắn, hoặc số đơn (#...)"
             className="h-10 rounded-full border-0 bg-[#f1f4f7] pl-10 text-sm text-[#0a1317] placeholder:text-[#5d6c7b] focus-visible:ring-2 focus-visible:ring-[#1876f2]"
           />
         </div>
