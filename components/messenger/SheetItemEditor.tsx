@@ -461,10 +461,10 @@ export function SheetReceiptEditor({
   store: string;
   receiptId: number;
 }) {
-  const [open, setOpen] = useState(false);
+  // Mặc định mở → tra cứu đơn ngay khi vào hội thoại. Bỏ transactionId → lấy cả đơn.
+  const [open, setOpen] = useState(true);
   const [syncing, setSyncing] = useState(false);
 
-  // Lazy: chỉ tra cứu khi mở (1 khách có thể có rất nhiều đơn). Bỏ transactionId → lấy cả đơn.
   const resolve = useResolveSheetRow({ store, receiptId, enabled: open });
   const matches = resolve.data?.matches ?? [];
   // Mã đơn để hiển thị: cột "Order" (prefix-receipt) nếu có, không thì #receiptId.
