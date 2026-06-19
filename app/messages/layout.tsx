@@ -8,9 +8,15 @@ import { ChatPanel } from "@/components/messenger/ChatPanel";
 import { UrlSync } from "@/components/messenger/RouteSync";
 import { PendingOpenSync } from "@/components/messenger/PendingOpenSync";
 import { useRealtimeMessages } from "@/lib/hooks/useRealtimeMessages";
+import { usePrefetchTabs } from "@/lib/hooks/usePrefetchTabs";
 
 function RealtimeBridge() {
   useRealtimeMessages();
+  return null;
+}
+
+function PrefetchController() {
+  usePrefetchTabs();
   return null;
 }
 
@@ -34,6 +40,7 @@ export default function MessagesLayout({ children }: { children: React.ReactNode
   return (
     <TabsProvider>
       <RealtimeBridge />
+      <PrefetchController />
       <TabHotkeys />
       <UrlSync />
       <PendingOpenSync />

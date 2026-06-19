@@ -8,6 +8,7 @@ import {
   type ClipboardEvent,
   type KeyboardEvent,
 } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { Send, Info, StickyNote, Paperclip, X, Loader2, Sparkles } from "lucide-react";
 import { MessageList } from "@/components/messenger/MessageList";
 import { useSendMessage } from "@/lib/hooks/useSendMessage";
@@ -37,6 +38,7 @@ export function ConversationView({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const { pending, send } = useSendMessage(conversationId);
+  const qc = useQueryClient();
   const name = meta?.name || `#${conversationId}`;
 
   // Tự cao theo nội dung: thu về 0 để đo đúng, cap ở MAX, chỉ bật cuộn khi tràn.
@@ -123,6 +125,17 @@ export function ConversationView({
     setAiLoading(true);
     try {
       const guide = draft.trim();
+
+      // Dùng cache prefetch nếu guidance rỗng và đã có sẵn.
+      if (!guide) {
+        const cached = qc.getQueryData<AIResponse>(["ai-suggestion", conversationId, ""]);
+        if (cached) {
+          setAiResult(cached);
+          setAiLoading(false);
+          return;
+        }
+      }
+
       const qs = guide ? `?input=${encodeURIComponent(guide)}` : "";
       const res = await fetch(`/api/conversations/${conversationId}/ai${qs}`);
       const data = (await res.json()) as AIResponse & { error?: string };
@@ -130,6 +143,8 @@ export function ConversationView({
         alert(`Gợi ý AI thất bại: ${data.error ?? res.status}`);
         return;
       }
+      // Lưu vào cache để lần sau không cần fetch lại.
+      qc.setQueryData(["ai-suggestion", conversationId, guide], data);
       setAiResult(data);
     } catch (err) {
       alert(`Gợi ý AI thất bại: ${(err as Error).message}`);
