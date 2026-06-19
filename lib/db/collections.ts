@@ -1,6 +1,8 @@
 import type { Collection, Db } from "mongodb";
 import clientPromise from "@/lib/mongodb-client";
 import type { AutoReplyDoc, ConversationDoc, MessageDoc } from "@/lib/types/etsy";
+import type { SheetConfigDoc, SheetRowDoc } from "@/lib/types/sheets";
+import type { OrderStatusDoc } from "@/lib/types/order-status";
 import { ensureIndexes } from "@/lib/db/indexes";
 
 // Lazy ensure index một lần cho mỗi process (cache global cho dev hot-reload).
@@ -42,4 +44,19 @@ export async function getMessagesCollection(): Promise<Collection<MessageDoc>> {
 export async function getAutoRepliesCollection(): Promise<Collection<AutoReplyDoc>> {
   const db = await getDb();
   return db.collection<AutoReplyDoc>("auto_reply_messages");
+}
+
+export async function getSheetConfigsCollection(): Promise<Collection<SheetConfigDoc>> {
+  const db = await getDb();
+  return db.collection<SheetConfigDoc>("sheet_configs");
+}
+
+export async function getSheetRowsCollection(): Promise<Collection<SheetRowDoc>> {
+  const db = await getDb();
+  return db.collection<SheetRowDoc>("sheet_rows");
+}
+
+export async function getOrderStatusesCollection(): Promise<Collection<OrderStatusDoc>> {
+  const db = await getDb();
+  return db.collection<OrderStatusDoc>("order_statuses");
 }

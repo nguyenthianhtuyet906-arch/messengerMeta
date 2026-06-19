@@ -47,7 +47,7 @@ export function ChatPanel() {
           onClose={() => setNotesOpen(false)}
         />
       </SlideInPanel>
-      <SlideInPanel open={infoOpen}>
+      <SlideInPanel open={infoOpen} widthClass="w-96">
         <ReceiptHistoryPanel
           conversationId={activeTabId}
           onClose={() => setInfoOpen(false)}

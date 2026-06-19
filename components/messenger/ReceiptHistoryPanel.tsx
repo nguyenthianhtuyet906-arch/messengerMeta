@@ -4,6 +4,7 @@ import { useState } from "react";
 import { X, Package, ChevronDown } from "lucide-react";
 import { useConversationDetail } from "@/lib/hooks/useConversationDetail";
 import { TagEditor } from "@/components/messenger/TagEditor";
+import { SheetReceiptEditor } from "@/components/messenger/SheetItemEditor";
 import type { ReceiptHistoryItem } from "@/lib/types/etsy";
 
 function ReceiptCard({ r }: { r: ReceiptHistoryItem }) {
@@ -90,6 +91,7 @@ export function ReceiptHistoryPanel({
 }) {
   const { data, isLoading, isError } = useConversationDetail(conversationId);
   const receipts = data?.receiptHistory ?? [];
+  const storeName = data?.storeName ?? "";
 
   return (
     <aside className="flex h-full w-full flex-col border-l border-[#dee3e9] bg-white">
@@ -114,11 +116,35 @@ export function ReceiptHistoryPanel({
         ) : receipts.length === 0 ? (
           <p className="px-1 py-4 text-sm text-[#5d6c7b]">Khách chưa có đơn hàng.</p>
         ) : (
-          <div className="flex flex-col gap-3">
-            {receipts.map((r) => (
-              <ReceiptCard key={r.receiptId} r={r} />
-            ))}
-          </div>
+          <>
+            {/* Khối cập nhật Sheet — tách riêng, đặt trên cùng. 1 card / 1 đơn (receipt). */}
+            {receipts.length > 0 ? (
+              <section className="mb-4">
+                <h4 className="mb-2 px-1 text-[11px] font-bold uppercase tracking-wide text-[#5d6c7b]">
+                  Cập nhật Sheet
+                </h4>
+                <div className="flex flex-col gap-2">
+                  {receipts.map((r) => (
+                    <SheetReceiptEditor
+                      key={r.receiptId}
+                      store={storeName}
+                      receiptId={r.receiptId}
+                    />
+                  ))}
+                </div>
+              </section>
+            ) : null}
+
+            {/* Lịch sử đơn hàng */}
+            <h4 className="mb-2 px-1 text-[11px] font-bold uppercase tracking-wide text-[#5d6c7b]">
+              Lịch sử đơn
+            </h4>
+            <div className="flex flex-col gap-3">
+              {receipts.map((r) => (
+                <ReceiptCard key={r.receiptId} r={r} />
+              ))}
+            </div>
+          </>
         )}
 
         {/* Quản lý thẻ cấp hội thoại — dưới phần lịch sử đơn */}

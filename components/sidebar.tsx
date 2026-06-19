@@ -132,11 +132,13 @@ export function Sidebar() {
       {/* Footer */}
       <div className="mt-auto flex flex-col gap-1 pt-4">
         <Link
-          href="#"
+          href="/settings"
           title={collapsed ? "Cài đặt" : undefined}
           className={cn(
             rowClass,
-            "text-[#5d6c7b] hover:bg-[#f1f4f7] hover:text-[#0a1317]",
+            pathname.startsWith("/settings")
+              ? "bg-[#0064e0] text-white"
+              : "text-[#5d6c7b] hover:bg-[#f1f4f7] hover:text-[#0a1317]",
           )}
         >
           <Settings className="h-5 w-5 shrink-0" />

@@ -65,6 +65,23 @@ const AUTO_REPLY_INDEXES: IndexDef[] = [
   { keys: { normalized_triggers: 1 }, options: { name: "idx_normalized_triggers" } },
 ];
 
+const SHEET_CONFIG_INDEXES: IndexDef[] = [
+  { keys: { spreadsheetId: 1 }, options: { name: "uq_spreadsheet_id", unique: true } },
+  { keys: { enabled: 1, order: 1 }, options: { name: "idx_enabled_order" } },
+];
+
+const SHEET_ROW_INDEXES: IndexDef[] = [
+  // Khoá tra cứu: từ Etsy biết receipt_id (+ transaction_id) → khớp mọi sheet (fallback tự nhiên).
+  { keys: { receiptTxKey: 1 }, options: { name: "idx_receipt_tx_key" } },
+  { keys: { receiptKey: 1 }, options: { name: "idx_receipt_key" } },
+  // Upsert theo dòng khi đồng bộ + dọn dòng cũ theo config.
+  {
+    keys: { spreadsheetId: 1, itemId: 1 },
+    options: { name: "uq_spreadsheet_item", unique: true },
+  },
+  { keys: { configId: 1 }, options: { name: "idx_config_id" } },
+];
+
 function isAlreadyExistsError(err: unknown): boolean {
   const msg = err instanceof Error ? err.message : String(err);
   return (
@@ -91,4 +108,6 @@ export async function ensureIndexes(db: Db): Promise<void> {
   await createIndexes(db, "conversations", CONVERSATION_INDEXES);
   await createIndexes(db, "messages", MESSAGE_INDEXES);
   await createIndexes(db, "auto_reply_messages", AUTO_REPLY_INDEXES);
+  await createIndexes(db, "sheet_configs", SHEET_CONFIG_INDEXES);
+  await createIndexes(db, "sheet_rows", SHEET_ROW_INDEXES);
 }

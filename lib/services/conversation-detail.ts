@@ -14,9 +14,10 @@ import {
   isObject,
 } from "@/lib/services/etsy-utils";
 
-// Chỉ lấy receipt_history (field nặng, bị loại khỏi list projection).
+// Lấy receipt_history (field nặng, bị loại khỏi list projection) + tên store để map sheet.
 const DETAIL_PROJECTION = {
   "etsy.buyer_info.receipt_history": 1,
+  "user_data.shop_name": 1,
 } as const;
 
 function mapTransaction(raw: unknown): ReceiptTransaction {
@@ -58,6 +59,7 @@ export async function getConversationReceiptHistory(
 
   const rawList = doc ? getPath(doc.etsy, "buyer_info.receipt_history") : undefined;
   const receiptHistory = Array.isArray(rawList) ? rawList.map(mapReceipt) : [];
+  const storeName = asString(getPath(doc?.user_data ?? {}, "shop_name"));
 
-  return { conversationId, receiptHistory };
+  return { conversationId, storeName, receiptHistory };
 }

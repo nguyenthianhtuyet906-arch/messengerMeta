@@ -212,9 +212,11 @@ export interface ReceiptHistoryItem {
   transactions: ReceiptTransaction[];
 }
 
-/** Phản hồi chi tiết hội thoại cho sidebar phải (chỉ receipt_history). */
+/** Phản hồi chi tiết hội thoại cho sidebar phải (receipt_history + store để map sheet). */
 export interface ConversationDetailResponse {
   conversationId: number;
+  /** Tên shop/store (user_data.shop_name) — dùng để ưu tiên dò sheet đúng store. */
+  storeName: string;
   receiptHistory: ReceiptHistoryItem[];
 }
 

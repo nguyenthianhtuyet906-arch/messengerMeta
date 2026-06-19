@@ -9,7 +9,16 @@ import { cn } from "@/lib/utils";
  * - Đóng: animate về 0 rồi mới unmount (sau khi transition kết thúc) → tránh fetch khi đang đóng.
  * Ẩn hẳn trên màn nhỏ (lg:block) giống hành vi panel cũ.
  */
-export function SlideInPanel({ open, children }: { open: boolean; children: ReactNode }) {
+export function SlideInPanel({
+  open,
+  children,
+  widthClass = "w-80",
+}: {
+  open: boolean;
+  children: ReactNode;
+  /** Bề rộng panel khi mở (Tailwind width class). Mặc định w-80 (320px). */
+  widthClass?: string;
+}) {
   // render: có gắn DOM hay không. shown: trạng thái mở (để chạy transition).
   const [render, setRender] = useState(open);
   const [shown, setShown] = useState(open);
@@ -37,13 +46,13 @@ export function SlideInPanel({ open, children }: { open: boolean; children: Reac
     <div
       className={cn(
         "hidden h-full shrink-0 overflow-hidden transition-all duration-300 ease-in-out lg:block",
-        shown ? "w-80 opacity-100" : "w-0 opacity-0",
+        shown ? `${widthClass} opacity-100` : "w-0 opacity-0",
       )}
       onTransitionEnd={() => {
         if (!open) setRender(false);
       }}
     >
-      <div className="h-full w-80">{children}</div>
+      <div className={cn("h-full", widthClass)}>{children}</div>
     </div>
   );
 }
