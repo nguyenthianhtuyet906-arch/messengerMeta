@@ -32,16 +32,16 @@ export function TagEditor({ conversationId }: { conversationId: number }) {
   };
 
   return (
-    <section className="rounded-2xl border border-[#dee3e9] p-3">
-      <h4 className="mb-2 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-[#5d6c7b]">
+    <section className="rounded-2xl border border-border p-3">
+      <h4 className="mb-2 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
         <Tag className="h-3.5 w-3.5" />
         Thẻ
       </h4>
 
       {isLoading ? (
-        <p className="text-sm text-[#5d6c7b]">Đang tải…</p>
+        <p className="text-sm text-muted-foreground">Đang tải…</p>
       ) : isError ? (
-        <p className="text-sm text-[#c41e3a]">Không tải được thẻ.</p>
+        <p className="text-sm text-destructive">Không tải được thẻ.</p>
       ) : (
         <>
           {/* Đã gắn — luôn ở trên */}
@@ -69,7 +69,7 @@ export function TagEditor({ conversationId }: { conversationId: number }) {
           )}
 
           {/* Nhập thẻ tùy ý */}
-          {error ? <p className="mb-1 text-xs text-[#c41e3a]">{error}</p> : null}
+          {error ? <p className="mb-1 text-xs text-destructive">{error}</p> : null}
           <div className="flex items-center gap-1.5">
             <input
               value={draft}
@@ -84,13 +84,13 @@ export function TagEditor({ conversationId }: { conversationId: number }) {
                 }
               }}
               placeholder="Thêm thẻ… (Enter)"
-              className="h-8 flex-1 rounded-full border-0 bg-[#f1f4f7] px-3 text-sm text-[#0a1317] placeholder:text-[#9aa6b2] focus:outline-none focus:ring-2 focus:ring-[#1876f2]"
+              className="h-8 flex-1 rounded-full border-0 bg-secondary px-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
             />
             <button
               onClick={submitCustom}
               disabled={!draft.trim() || add.isPending}
               aria-label="Thêm thẻ"
-              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#0064e0] text-white transition-colors hover:bg-[#0457cb] disabled:bg-[#bcc0c4]"
+              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary text-white transition-colors hover:bg-primary/90 disabled:bg-input-strong"
             >
               <Plus className="h-4 w-4" />
             </button>

@@ -11,7 +11,7 @@ export default async function LoginPage() {
     <div className="flex min-h-dvh w-full items-center justify-center bg-background p-4">
       <div className="w-full max-w-sm rounded-2xl border border-border bg-card p-8 shadow-sm">
         <div className="mb-6 flex flex-col items-center gap-3">
-          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#0064e0] text-white">
+          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary text-white">
             <MessagesSquare className="h-6 w-6" />
           </div>
           <h1 className="text-xl font-bold tracking-tight">EtsyChat</h1>

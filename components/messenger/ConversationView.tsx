@@ -183,15 +183,15 @@ export function ConversationView({
     : [];
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col bg-white">
-      <header className="flex shrink-0 items-center gap-2.5 border-b border-[#dee3e9] px-4 py-3">
+    <div className="flex min-h-0 flex-1 flex-col bg-card">
+      <header className="flex shrink-0 items-center gap-2.5 border-b border-border px-4 py-3">
         <Avatar className="h-8 w-8">
           {meta?.avatar ? <AvatarImage src={meta.avatar} alt={name} /> : null}
-          <AvatarFallback className="bg-[#e7f0fb] text-xs font-bold text-[#0064e0]">
+          <AvatarFallback className="bg-accent text-xs font-bold text-primary">
             {initials(name)}
           </AvatarFallback>
         </Avatar>
-        <h2 className="font-bold leading-tight text-[#0a1317]">{name}</h2>
+        <h2 className="font-bold leading-tight text-foreground">{name}</h2>
         <div className="ml-auto flex shrink-0 items-center gap-1">
           {onToggleNotes ? (
             <button
@@ -201,8 +201,8 @@ export function ConversationView({
               className={
                 "flex h-8 w-8 items-center justify-center rounded-full transition-colors " +
                 (notesOpen
-                  ? "bg-[#e7f0fb] text-[#0064e0]"
-                  : "text-[#5d6c7b] hover:bg-[#f1f4f7]")
+                  ? "bg-accent text-primary"
+                  : "text-muted-foreground hover:bg-secondary")
               }
             >
               <StickyNote className="h-4 w-4" />
@@ -216,8 +216,8 @@ export function ConversationView({
               className={
                 "flex h-8 w-8 items-center justify-center rounded-full transition-colors " +
                 (infoOpen
-                  ? "bg-[#e7f0fb] text-[#0064e0]"
-                  : "text-[#5d6c7b] hover:bg-[#f1f4f7]")
+                  ? "bg-accent text-primary"
+                  : "text-muted-foreground hover:bg-secondary")
               }
             >
               <Info className="h-4 w-4" />
@@ -230,20 +230,20 @@ export function ConversationView({
 
       {/* Panel gợi ý AI — bám sát ô chat, dùng nội dung đang gõ làm định hướng */}
       {aiOpen && (
-        <div className="shrink-0 border-t border-[#dee3e9] bg-[#faf8ff] px-6 py-2.5">
+        <div className="shrink-0 border-t border-border bg-info-soft px-6 py-2.5">
           <div className="flex items-center gap-2 text-xs">
-            <span className="flex items-center gap-1 font-semibold text-[#8b3df2]">
+            <span className="flex items-center gap-1 font-semibold text-info">
               <Sparkles className="h-3.5 w-3.5" /> Gợi ý AI
             </span>
             {aiResult?.suggested_tag ? (
-              <span className="rounded-full bg-[#f3e8ff] px-2 py-0.5 font-medium text-[#8b3df2]">
+              <span className="rounded-full bg-info-soft px-2 py-0.5 font-medium text-info">
                 {aiResult.suggested_tag}
               </span>
             ) : null}
             <button
               onClick={fetchAI}
               disabled={aiLoading}
-              className="ml-auto flex items-center gap-1 rounded-full px-2 py-0.5 font-medium text-[#8b3df2] hover:bg-[#f3e8ff] disabled:opacity-50"
+              className="ml-auto flex items-center gap-1 rounded-full px-2 py-0.5 font-medium text-info hover:bg-info-soft disabled:opacity-50"
             >
               {aiLoading ? (
                 <Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -255,14 +255,14 @@ export function ConversationView({
             <button
               onClick={() => setAiOpen(false)}
               aria-label="Đóng"
-              className="flex h-5 w-5 items-center justify-center rounded-full text-[#5d6c7b] hover:bg-[#eee]"
+              className="flex h-5 w-5 items-center justify-center rounded-full text-muted-foreground hover:bg-muted"
             >
               <X className="h-3.5 w-3.5" />
             </button>
           </div>
 
           {aiLoading && aiOptions.length === 0 ? (
-            <p className="mt-2 text-xs text-[#5d6c7b]">Đang tạo gợi ý…</p>
+            <p className="mt-2 text-xs text-muted-foreground">Đang tạo gợi ý…</p>
           ) : aiOptions.length > 0 ? (
             <div className="mt-2 grid gap-2 sm:grid-cols-3">
               {aiOptions.map((o) => (
@@ -270,9 +270,9 @@ export function ConversationView({
                   key={o.key}
                   onClick={() => useSuggestion(o.text)}
                   title="Bấm để đưa vào ô chat"
-                  className="rounded-xl border border-[#e6dbfa] bg-white p-2.5 text-left text-sm text-[#0a1317] transition-colors hover:border-[#8b3df2] hover:bg-[#f7f2ff]"
+                  className="rounded-xl border border-info-soft bg-card p-2.5 text-left text-sm text-foreground transition-colors hover:border-info hover:bg-info-soft"
                 >
-                  <div className="mb-1 text-xs font-semibold text-[#8b3df2]">{o.label}</div>
+                  <div className="mb-1 text-xs font-semibold text-info">{o.label}</div>
                   <div className="line-clamp-4 whitespace-pre-wrap break-words">{o.text}</div>
                 </button>
               ))}
@@ -282,7 +282,7 @@ export function ConversationView({
       )}
 
       {/* Composer */}
-      <div className="relative shrink-0 border-t border-[#dee3e9] px-6 py-4">
+      <div className="relative shrink-0 border-t border-border px-6 py-4">
         {/* Preview ảnh đã chọn */}
         {(attachments.length > 0 || uploading) && (
           <div className="mb-3 flex flex-wrap gap-2">
@@ -292,19 +292,19 @@ export function ConversationView({
                 <img
                   src={url}
                   alt=""
-                  className="h-20 w-20 rounded-lg border border-[#dee3e9] object-cover"
+                  className="h-20 w-20 rounded-lg border border-border object-cover"
                 />
                 <button
                   onClick={() => removeAttachment(url)}
                   aria-label="Xoá ảnh"
-                  className="absolute -right-1.5 -top-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-[#0a1317] text-white hover:bg-black"
+                  className="absolute -right-1.5 -top-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-foreground text-white hover:bg-black"
                 >
                   <X className="h-3 w-3" />
                 </button>
               </div>
             ))}
             {uploading && (
-              <div className="flex h-20 w-20 items-center justify-center rounded-lg border border-dashed border-[#bcc0c4] text-[#5d6c7b]">
+              <div className="flex h-20 w-20 items-center justify-center rounded-lg border border-dashed border-input-strong text-muted-foreground">
                 <Loader2 className="h-5 w-5 animate-spin" />
               </div>
             )}
@@ -333,7 +333,7 @@ export function ConversationView({
             onClick={() => fileInputRef.current?.click()}
             disabled={uploading}
             aria-label="Đính kèm ảnh"
-            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-[#5d6c7b] transition-colors hover:bg-[#f1f4f7] disabled:opacity-50"
+            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-secondary disabled:opacity-50"
           >
             <Paperclip className="h-5 w-5" />
           </button>
@@ -344,8 +344,8 @@ export function ConversationView({
             className={
               "flex h-11 w-11 shrink-0 items-center justify-center rounded-full transition-colors " +
               (templateOpen
-                ? "bg-[#e7f0fb] text-[#0064e0]"
-                : "text-[#5d6c7b] hover:bg-[#f1f4f7]")
+                ? "bg-accent text-primary"
+                : "text-muted-foreground hover:bg-secondary")
             }
           >
             <BookMarked className="h-5 w-5" />
@@ -358,7 +358,7 @@ export function ConversationView({
             onPaste={onPaste}
             rows={1}
             placeholder="Nhập tin nhắn… (Enter gửi · Shift+Enter xuống dòng · Ctrl+Enter gợi ý AI)"
-            className="chat-input-scroll max-h-32 flex-1 resize-none overflow-y-hidden rounded-2xl border-0 bg-[#f1f4f7] px-4 py-2.5 text-sm leading-relaxed text-[#0a1317] placeholder:text-[#9aa6b2] focus:outline-none focus:ring-2 focus:ring-[#1876f2]"
+            className="chat-input-scroll max-h-32 flex-1 resize-none overflow-y-hidden rounded-2xl border-0 bg-secondary px-4 py-2.5 text-sm leading-relaxed text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
           />
           <button
             onClick={toggleAi}
@@ -367,8 +367,8 @@ export function ConversationView({
             className={
               "flex h-11 w-11 shrink-0 items-center justify-center rounded-full transition-colors " +
               (aiOpen
-                ? "bg-[#f3e8ff] text-[#8b3df2]"
-                : "text-[#8b3df2] hover:bg-[#f3e8ff]")
+                ? "bg-info-soft text-info"
+                : "text-info hover:bg-info-soft")
             }
           >
             <Sparkles className="h-5 w-5" />
@@ -376,7 +376,7 @@ export function ConversationView({
           <button
             onClick={submit}
             disabled={(!draft.trim() && attachments.length === 0) || uploading}
-            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[#0064e0] text-white transition-colors hover:bg-[#0457cb] disabled:bg-[#bcc0c4]"
+            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-primary text-white transition-colors hover:bg-primary/90 disabled:bg-input-strong"
             aria-label="Gửi tin nhắn"
           >
             <Send className="h-5 w-5" />

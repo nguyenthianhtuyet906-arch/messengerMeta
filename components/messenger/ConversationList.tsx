@@ -32,21 +32,21 @@ const Row = memo(function Row({
       onClick={onClick}
       className={cn(
         "flex w-full items-center gap-3 rounded-2xl px-3 py-3 text-left transition-colors",
-        active ? "bg-[#e7f0fb]" : "hover:bg-[#f1f4f7]",
+        active ? "bg-accent" : "hover:bg-secondary",
       )}
     >
       <Avatar className="h-12 w-12 shrink-0">
         {c.avatar ? <AvatarImage src={c.avatar} alt={c.name} /> : null}
-        <AvatarFallback className="bg-[#e7f0fb] text-[#0064e0] font-bold">
+        <AvatarFallback className="bg-accent text-primary font-bold">
           {initials(c.name)}
         </AvatarFallback>
       </Avatar>
       <div className="min-w-0 flex-1">
         <div className="flex items-baseline justify-between gap-2">
-          <span className="truncate font-bold text-sm text-[#0a1317]">
+          <span className="truncate font-bold text-sm text-foreground">
             {c.name || `#${c.conversationId}`}
           </span>
-          <span className="shrink-0 text-xs text-[#5d6c7b]">
+          <span className="shrink-0 text-xs text-muted-foreground">
             {timeAgo(c.lastMessageDate)}
           </span>
         </div>
@@ -54,13 +54,13 @@ const Row = memo(function Row({
           <span
             className={cn(
               "truncate text-sm",
-              c.hasReplied ? "text-[#5d6c7b]" : "font-semibold text-[#0a1317]",
+              c.hasReplied ? "text-muted-foreground" : "font-semibold text-foreground",
             )}
           >
             {c.excerpt || "—"}
           </span>
           {!c.hasReplied && (
-            <span className="h-2.5 w-2.5 shrink-0 rounded-full bg-[#0064e0]" />
+            <span className="h-2.5 w-2.5 shrink-0 rounded-full bg-primary" />
           )}
         </div>
         {c.tags.length > 0 && (
@@ -98,8 +98,8 @@ const FilterChip = memo(function FilterChip({
       className={cn(
         "w-full rounded-full border px-3 py-1.5 text-center text-xs font-medium transition-colors",
         active
-          ? "border-[#0064e0] bg-[#e7f0fb] text-[#0064e0]"
-          : "border-[#dee3e9] text-[#5d6c7b] hover:bg-[#f1f4f7]",
+          ? "border-primary bg-accent text-primary"
+          : "border-border text-muted-foreground hover:bg-secondary",
       )}
     >
       {label}
@@ -185,10 +185,10 @@ export function ConversationList() {
   }, [virtualItems, items.length, hasNextPage, isFetchingNextPage, fetchNextPage]);
 
   return (
-    <div className="flex w-full max-w-sm flex-col border-r border-[#dee3e9] bg-white md:w-80 lg:w-96">
+    <div className="flex w-full max-w-sm flex-col border-r border-border bg-card md:w-80 lg:w-96">
       <div className="px-5 pt-6 pb-3">
         <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-medium tracking-tight text-[#0a1317]">Đoạn chat</h1>
+          <h1 className="text-2xl font-medium tracking-tight text-foreground">Đoạn chat</h1>
           <div className="flex items-center gap-1">
             <button
               onClick={() => setSort((v) => (v === "desc" ? "asc" : "desc"))}
@@ -196,8 +196,8 @@ export function ConversationList() {
               className={cn(
                 "flex h-9 w-9 items-center justify-center rounded-full transition-colors",
                 sort === "asc"
-                  ? "bg-[#e7f0fb] text-[#0064e0]"
-                  : "text-[#5d6c7b] hover:bg-[#f1f4f7]",
+                  ? "bg-accent text-primary"
+                  : "text-muted-foreground hover:bg-secondary",
               )}
             >
               {sort === "desc" ? (
@@ -210,19 +210,19 @@ export function ConversationList() {
               href="/auto-replies"
               title="Tự động trả lời"
               aria-label="Tự động trả lời"
-              className="flex h-9 w-9 items-center justify-center rounded-full text-[#5d6c7b] transition-colors hover:bg-[#f1f4f7]"
+              className="flex h-9 w-9 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-secondary"
             >
               <MessageSquareReply className="h-5 w-5" />
             </Link>
           </div>
         </div>
         <div className="relative mt-4">
-          <Search className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-[#5d6c7b]" />
+          <Search className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
             value={searchInput}
             onChange={(e) => setSearchInput(e.target.value)}
             placeholder="Tìm tên, nội dung tin nhắn, hoặc số đơn (#...)"
-            className="h-10 rounded-full border-0 bg-[#f1f4f7] pl-10 text-sm text-[#0a1317] placeholder:text-[#5d6c7b] focus-visible:ring-2 focus-visible:ring-[#1876f2]"
+            className="h-10 rounded-full border-0 bg-secondary pl-10 text-sm text-foreground placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-ring"
           />
         </div>
 
@@ -255,26 +255,26 @@ export function ConversationList() {
 
         {/* Mở nhanh nhiều hội thoại */}
         <div className="mt-3 flex items-center gap-2">
-          <span className="text-xs font-medium text-[#5d6c7b]">Mở nhanh:</span>
+          <span className="text-xs font-medium text-muted-foreground">Mở nhanh:</span>
           {([10, 25, 50, "all"] as const).map((n) => (
             <button
               key={String(n)}
               onClick={() => bulkOpen(n)}
               disabled={bulkLoading}
-              className="rounded-full bg-[#0064e0] px-2.5 py-1 text-xs font-semibold text-white transition-colors hover:bg-[#0457cb] disabled:bg-[#bcc0c4]"
+              className="rounded-full bg-primary px-2.5 py-1 text-xs font-semibold text-white transition-colors hover:bg-primary/90 disabled:bg-input-strong"
             >
               {n === "all" ? "Tất cả" : n}
             </button>
           ))}
-          {bulkLoading && <span className="text-xs text-[#5d6c7b]">Đang mở…</span>}
+          {bulkLoading && <span className="text-xs text-muted-foreground">Đang mở…</span>}
         </div>
       </div>
 
       <div ref={parentRef} className="min-h-0 flex-1 overflow-y-auto px-2 pb-4">
         {isLoading ? (
-          <p className="px-4 py-8 text-center text-sm text-[#5d6c7b]">Đang tải…</p>
+          <p className="px-4 py-8 text-center text-sm text-muted-foreground">Đang tải…</p>
         ) : items.length === 0 ? (
-          <p className="px-4 py-8 text-center text-sm text-[#5d6c7b]">
+          <p className="px-4 py-8 text-center text-sm text-muted-foreground">
             Không có đoạn chat nào.
           </p>
         ) : (

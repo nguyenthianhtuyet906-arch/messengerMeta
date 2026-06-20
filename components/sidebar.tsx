@@ -15,6 +15,7 @@ import {
 import { signOut, useSession } from "next-auth/react"
 import { cn } from "@/lib/utils"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { ThemeToggle } from "@/components/theme-toggle"
 
 const navItems = [
   { href: "/", label: "Dashboard", icon: LayoutDashboard },
@@ -80,7 +81,7 @@ export function Sidebar() {
           collapsed ? "flex flex-col items-center gap-3" : "flex items-center gap-2 px-2",
         )}
       >
-        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#0064e0] text-white">
+        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground">
           <MessagesSquare className="h-5 w-5" />
         </div>
         {!collapsed && (
@@ -92,7 +93,7 @@ export function Sidebar() {
           aria-label={collapsed ? "Mở rộng menu" : "Thu gọn menu"}
           title={collapsed ? "Mở rộng menu" : "Thu gọn menu"}
           className={cn(
-            "flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-[#5d6c7b] transition-colors hover:bg-[#f1f4f7] hover:text-[#0a1317]",
+            "flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground",
             !collapsed && "ml-auto",
           )}
         >
@@ -118,8 +119,8 @@ export function Sidebar() {
               className={cn(
                 rowClass,
                 active
-                  ? "bg-[#0064e0] text-white"
-                  : "text-[#5d6c7b] hover:bg-[#f1f4f7] hover:text-[#0a1317]",
+                  ? "bg-primary text-primary-foreground"
+                  : "text-muted-foreground hover:bg-secondary hover:text-foreground",
               )}
             >
               <Icon className="h-5 w-5 shrink-0" />
@@ -137,13 +138,14 @@ export function Sidebar() {
           className={cn(
             rowClass,
             pathname.startsWith("/settings")
-              ? "bg-[#0064e0] text-white"
-              : "text-[#5d6c7b] hover:bg-[#f1f4f7] hover:text-[#0a1317]",
+              ? "bg-primary text-primary-foreground"
+              : "text-muted-foreground hover:bg-secondary hover:text-foreground",
           )}
         >
           <Settings className="h-5 w-5 shrink-0" />
           {!collapsed && <span>Cài đặt</span>}
         </Link>
+        <ThemeToggle collapsed={collapsed} />
         <div
           className={cn(
             "flex items-center gap-3 rounded-full py-2",
@@ -174,7 +176,7 @@ export function Sidebar() {
             title={collapsed ? "Đăng xuất" : undefined}
             className={cn(
               rowClass,
-              "text-[#5d6c7b] hover:bg-[#f1f4f7] hover:text-[#0a1317]",
+              "text-muted-foreground hover:bg-secondary hover:text-foreground",
             )}
           >
             <LogOut className="h-5 w-5 shrink-0" />

@@ -21,7 +21,7 @@ export function ChatPanel() {
 
   if (activeTabId === null) {
     return (
-      <div className="flex flex-1 flex-col items-center justify-center bg-white text-[#5d6c7b]">
+      <div className="flex flex-1 flex-col items-center justify-center bg-card text-muted-foreground">
         <MessageSquare className="h-12 w-12 opacity-40" />
         <p className="mt-3 text-sm">Chọn một đoạn chat để bắt đầu</p>
       </div>

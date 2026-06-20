@@ -17,8 +17,8 @@ import { PanelCard } from "./PanelCard";
 import { cn } from "@/lib/utils";
 
 const METRICS: { key: ShopMetricKey; label: string; color: string }[] = [
-  { key: "conversations", label: "Hội thoại", color: "#0064e0" },
-  { key: "orders", label: "Số đơn", color: "#31a24c" },
+  { key: "conversations", label: "Hội thoại", color: "var(--chart-1)" },
+  { key: "orders", label: "Số đơn", color: "var(--chart-5)" },
 ];
 
 export function ShopAnalytics({ filters }: { filters: AnalyticsFilters }) {
@@ -55,7 +55,7 @@ export function ShopAnalytics({ filters }: { filters: AnalyticsFilters }) {
       tools={
         <div className="flex items-center gap-2">
           {/* Chuyển chỉ số */}
-          <div className="flex rounded-full border border-[#dee3e9] bg-white p-0.5">
+          <div className="flex rounded-full border border-border bg-card p-0.5">
             {METRICS.map((m) => (
               <button
                 key={m.key}
@@ -63,7 +63,7 @@ export function ShopAnalytics({ filters }: { filters: AnalyticsFilters }) {
                 onClick={() => setMetric(m.key)}
                 className={cn(
                   "rounded-full px-3 py-1 text-xs font-bold transition-colors",
-                  metric === m.key ? "bg-[#0064e0] text-white" : "text-[#5d6c7b] hover:bg-[#f1f4f7]",
+                  metric === m.key ? "bg-primary text-white" : "text-muted-foreground hover:bg-secondary",
                 )}
               >
                 {m.label}
@@ -77,26 +77,26 @@ export function ShopAnalytics({ filters }: { filters: AnalyticsFilters }) {
               <button
                 type="button"
                 onClick={() => setShowFilter((v) => !v)}
-                className="inline-flex items-center gap-1 rounded-full border border-[#dee3e9] bg-white px-3 py-1.5 text-xs font-bold text-[#5d6c7b] transition-colors hover:bg-[#f1f4f7]"
+                className="inline-flex items-center gap-1 rounded-full border border-border bg-card px-3 py-1.5 text-xs font-bold text-muted-foreground transition-colors hover:bg-secondary"
               >
                 <ListFilter className="h-3.5 w-3.5" />
                 Lọc shop
               </button>
               {showFilter && (
-                <div className="absolute right-0 z-10 mt-2 max-h-72 w-56 overflow-y-auto rounded-2xl border border-[#dee3e9] bg-white p-2 shadow-lg">
+                <div className="absolute right-0 z-10 mt-2 max-h-72 w-56 overflow-y-auto rounded-2xl border border-border bg-card p-2 shadow-lg">
                   {allItems.map((i) => (
                     <label
                       key={i.shopId}
-                      className="flex cursor-pointer items-center gap-2 rounded-lg px-2 py-1.5 text-sm hover:bg-[#f1f4f7]"
+                      className="flex cursor-pointer items-center gap-2 rounded-lg px-2 py-1.5 text-sm hover:bg-secondary"
                     >
                       <input
                         type="checkbox"
                         checked={!hidden.has(i.shopId)}
                         onChange={() => toggle(i.shopId)}
-                        className="accent-[#0064e0]"
+                        className="accent-primary"
                       />
-                      <span className="min-w-0 flex-1 truncate text-[#0a1317]">{i.shopName}</span>
-                      <span className="text-xs text-[#5d6c7b]">{i[metric]}</span>
+                      <span className="min-w-0 flex-1 truncate text-foreground">{i.shopName}</span>
+                      <span className="text-xs text-muted-foreground">{i[metric]}</span>
                     </label>
                   ))}
                 </div>
@@ -107,26 +107,32 @@ export function ShopAnalytics({ filters }: { filters: AnalyticsFilters }) {
       }
     >
       {isError ? (
-        <p className="py-6 text-center text-sm text-[#e41e3f]">Không tải được dữ liệu.</p>
+        <p className="py-6 text-center text-sm text-destructive">Không tải được dữ liệu.</p>
       ) : chartData.length === 0 ? (
-        <p className="py-6 text-center text-sm text-[#5d6c7b]">Chưa có dữ liệu.</p>
+        <p className="py-6 text-center text-sm text-muted-foreground">Chưa có dữ liệu.</p>
       ) : (
         <div className="h-72 w-full">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={chartData} margin={{ top: 8, right: 8, bottom: 8, left: -16 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#eef1f5" vertical={false} />
+              <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
               <XAxis
                 dataKey="name"
-                tick={{ fontSize: 11, fill: "#5d6c7b" }}
+                tick={{ fontSize: 11, fill: "var(--muted-foreground)" }}
                 interval={0}
                 angle={-25}
                 textAnchor="end"
                 height={60}
               />
-              <YAxis tick={{ fontSize: 11, fill: "#5d6c7b" }} allowDecimals={false} />
+              <YAxis tick={{ fontSize: 11, fill: "var(--muted-foreground)" }} allowDecimals={false} />
               <Tooltip
-                cursor={{ fill: "#f1f4f7" }}
-                contentStyle={{ borderRadius: 12, border: "1px solid #dee3e9", fontSize: 12 }}
+                cursor={{ fill: "var(--secondary)" }}
+                contentStyle={{
+                  borderRadius: 12,
+                  border: "1px solid var(--border)",
+                  fontSize: 12,
+                  background: "var(--popover)",
+                  color: "var(--popover-foreground)",
+                }}
               />
               <Bar
                 dataKey="value"

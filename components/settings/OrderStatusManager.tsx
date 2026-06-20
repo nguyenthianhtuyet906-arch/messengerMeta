@@ -8,7 +8,7 @@ import type { OrderStatusDTO } from "@/lib/types/order-status";
 function Swatch({ color }: { color: string }) {
   return (
     <span
-      className="inline-block h-3.5 w-3.5 shrink-0 rounded-full border border-[#dee3e9]"
+      className="inline-block h-3.5 w-3.5 shrink-0 rounded-full border border-border"
       style={{ backgroundColor: color || "transparent" }}
       title={color}
     />
@@ -31,7 +31,7 @@ const PRESET_COLORS = [
 function ColorField({ value, onChange }: { value: string; onChange: (v: string) => void }) {
   return (
     <div>
-      <div className="flex items-center gap-2 rounded-lg bg-[#f1f4f7] px-2 py-1">
+      <div className="flex items-center gap-2 rounded-lg bg-secondary px-2 py-1">
         <input
           type="color"
           aria-label="Chọn màu"
@@ -57,7 +57,7 @@ function ColorField({ value, onChange }: { value: string; onChange: (v: string) 
             aria-label={`Chọn ${c}`}
             className={
               "h-5 w-5 rounded-full border transition-transform hover:scale-110 " +
-              (value.trim().toLowerCase() === c ? "border-[#0a1317]" : "border-[#dee3e9]")
+              (value.trim().toLowerCase() === c ? "border-foreground" : "border-border")
             }
             style={{ backgroundColor: c }}
           />
@@ -87,20 +87,20 @@ function StatusRow({ s }: { s: OrderStatusDTO }) {
           value={name}
           onChange={(e) => setName(e.target.value)}
           placeholder="Tên trạng thái"
-          className="rounded-lg border-0 bg-[#f1f4f7] px-2.5 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#1876f2]"
+          className="rounded-lg border-0 bg-secondary px-2.5 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
         />
         <ColorField value={color} onChange={setColor} />
         <input
           value={description}
           onChange={(e) => setDescription(e.target.value)}
           placeholder="Mô tả"
-          className="rounded-lg border-0 bg-[#f1f4f7] px-2.5 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#1876f2]"
+          className="rounded-lg border-0 bg-secondary px-2.5 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
         />
         <div className="flex items-center gap-2">
           <button
             onClick={save}
             disabled={update.isPending}
-            className="flex items-center gap-1.5 rounded-full bg-[#0064e0] px-3 py-1.5 text-xs font-semibold text-white hover:bg-[#0457cb] disabled:bg-[#bcc0c4]"
+            className="flex items-center gap-1.5 rounded-full bg-primary px-3 py-1.5 text-xs font-semibold text-white hover:bg-primary/90 disabled:bg-input-strong"
           >
             {update.isPending ? (
               <Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -111,7 +111,7 @@ function StatusRow({ s }: { s: OrderStatusDTO }) {
           </button>
           <button
             onClick={() => setEditing(false)}
-            className="flex items-center gap-1.5 rounded-full bg-[#f1f4f7] px-3 py-1.5 text-xs font-medium text-[#5d6c7b] hover:bg-[#e4e8ec]"
+            className="flex items-center gap-1.5 rounded-full bg-secondary px-3 py-1.5 text-xs font-medium text-muted-foreground hover:bg-muted"
           >
             <X className="h-3.5 w-3.5" />
             Huỷ
@@ -125,9 +125,9 @@ function StatusRow({ s }: { s: OrderStatusDTO }) {
     <li className="flex items-center gap-2.5 px-3 py-2.5">
       <Swatch color={s.color} />
       <div className="min-w-0 flex-1">
-        <div className="truncate text-sm font-semibold text-[#0a1317]">{s.name}</div>
+        <div className="truncate text-sm font-semibold text-foreground">{s.name}</div>
         {s.description ? (
-          <div className="truncate text-xs text-[#5d6c7b]">{s.description}</div>
+          <div className="truncate text-xs text-muted-foreground">{s.description}</div>
         ) : null}
       </div>
       <button
@@ -138,7 +138,7 @@ function StatusRow({ s }: { s: OrderStatusDTO }) {
           setEditing(true);
         }}
         aria-label="Sửa"
-        className="shrink-0 text-[#5d6c7b] hover:text-[#0064e0]"
+        className="shrink-0 text-muted-foreground hover:text-primary"
       >
         <Pencil className="h-4 w-4" />
       </button>
@@ -147,7 +147,7 @@ function StatusRow({ s }: { s: OrderStatusDTO }) {
           if (confirm(`Xoá trạng thái "${s.name}"?`)) remove.mutate(s.id);
         }}
         aria-label="Xoá"
-        className="shrink-0 text-[#5d6c7b] hover:text-[#b42318]"
+        className="shrink-0 text-muted-foreground hover:text-destructive"
       >
         <Trash2 className="h-4 w-4" />
       </button>
@@ -180,29 +180,29 @@ export function OrderStatusManager() {
 
   return (
     <div className="mt-8">
-      <h2 className="mb-3 text-base font-semibold text-[#0a1317]">Trạng thái đơn</h2>
+      <h2 className="mb-3 text-base font-semibold text-foreground">Trạng thái đơn</h2>
 
-      <div className="mb-4 rounded-2xl border border-[#dee3e9] p-4">
+      <div className="mb-4 rounded-2xl border border-border p-4">
         <div className="flex flex-col gap-2">
           <input
             value={name}
             onChange={(e) => setName(e.target.value)}
             placeholder="Tên trạng thái (vd CONFIRMED)"
-            className="rounded-lg border-0 bg-[#f1f4f7] px-2.5 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#1876f2]"
+            className="rounded-lg border-0 bg-secondary px-2.5 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
           />
           <ColorField value={color} onChange={setColor} />
           <input
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             placeholder="Mô tả (tuỳ chọn)"
-            className="w-full rounded-lg border-0 bg-[#f1f4f7] px-2.5 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#1876f2]"
+            className="w-full rounded-lg border-0 bg-secondary px-2.5 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
           />
         </div>
-        {error && <p className="mt-2 text-sm text-[#b42318]">{error}</p>}
+        {error && <p className="mt-2 text-sm text-destructive">{error}</p>}
         <button
           onClick={submit}
           disabled={add.isPending}
-          className="mt-3 flex items-center gap-1.5 rounded-full bg-[#0064e0] px-4 py-2 text-sm font-semibold text-white hover:bg-[#0457cb] disabled:bg-[#bcc0c4]"
+          className="mt-3 flex items-center gap-1.5 rounded-full bg-primary px-4 py-2 text-sm font-semibold text-white hover:bg-primary/90 disabled:bg-input-strong"
         >
           {add.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
           Thêm trạng thái
@@ -210,11 +210,11 @@ export function OrderStatusManager() {
       </div>
 
       {query.isLoading ? (
-        <p className="py-6 text-center text-sm text-[#5d6c7b]">Đang tải…</p>
+        <p className="py-6 text-center text-sm text-muted-foreground">Đang tải…</p>
       ) : statuses.length === 0 ? (
-        <p className="py-6 text-center text-sm text-[#5d6c7b]">Chưa có trạng thái nào.</p>
+        <p className="py-6 text-center text-sm text-muted-foreground">Chưa có trạng thái nào.</p>
       ) : (
-        <ul className="divide-y divide-[#eef1f4] rounded-2xl border border-[#dee3e9]">
+        <ul className="divide-y divide-border rounded-2xl border border-border">
           {statuses.map((s) => (
             <StatusRow key={s.id} s={s} />
           ))}

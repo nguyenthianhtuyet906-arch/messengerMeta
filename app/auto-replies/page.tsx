@@ -130,45 +130,45 @@ export default function AutoRepliesPage() {
       <div className="mb-6 flex items-center gap-3">
         <Link
           href="/messages"
-          className="flex h-9 w-9 items-center justify-center rounded-full text-[#5d6c7b] hover:bg-[#f1f4f7]"
+          className="flex h-9 w-9 items-center justify-center rounded-full text-muted-foreground hover:bg-secondary"
           aria-label="Quay lại"
         >
           <ArrowLeft className="h-5 w-5" />
         </Link>
-        <h1 className="text-2xl font-medium tracking-tight text-[#0a1317]">
+        <h1 className="text-2xl font-medium tracking-tight text-foreground">
           Tự động trả lời
         </h1>
       </div>
 
-      <p className="mb-4 text-sm text-[#5d6c7b]">
+      <p className="mb-4 text-sm text-muted-foreground">
         Khi tin nhắn khách khớp <strong>chính xác</strong> một trigger (đã chuẩn hoá: thường
         hoá, bỏ dấu câu), hệ thống tự gửi nội dung trả lời tương ứng. Nhiều trigger ngăn cách
         bằng dấu chấm phẩy <code>;</code> (dấu phẩy được giữ nguyên trong câu).
       </p>
 
       {/* Form tạo mới */}
-      <div className="mb-6 rounded-2xl border border-[#dee3e9] p-4">
+      <div className="mb-6 rounded-2xl border border-border p-4">
         <div className="grid gap-3 sm:grid-cols-2">
           <textarea
             value={trigger}
             onChange={(e) => setTrigger(e.target.value)}
             rows={2}
             placeholder="Trigger (vd: hello; hi)"
-            className="min-h-[40px] resize-y rounded-xl border-0 bg-[#f1f4f7] px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#1876f2]"
+            className="min-h-[40px] resize-y rounded-xl border-0 bg-secondary px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
           />
           <textarea
             value={reply}
             onChange={(e) => setReply(e.target.value)}
             rows={2}
             placeholder="Nội dung trả lời"
-            className="min-h-[40px] resize-y rounded-xl border-0 bg-[#f1f4f7] px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#1876f2]"
+            className="min-h-[40px] resize-y rounded-xl border-0 bg-secondary px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
           />
         </div>
-        {error && <p className="mt-2 text-sm text-[#b42318]">{error}</p>}
+        {error && <p className="mt-2 text-sm text-destructive">{error}</p>}
         <button
           onClick={create}
           disabled={saving}
-          className="mt-3 flex items-center gap-1.5 rounded-full bg-[#0064e0] px-4 py-2 text-sm font-semibold text-white hover:bg-[#0457cb] disabled:bg-[#bcc0c4]"
+          className="mt-3 flex items-center gap-1.5 rounded-full bg-primary px-4 py-2 text-sm font-semibold text-white hover:bg-primary/90 disabled:bg-input-strong"
         >
           {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
           Thêm quy tắc
@@ -177,11 +177,11 @@ export default function AutoRepliesPage() {
 
       {/* Danh sách */}
       {loading ? (
-        <p className="py-8 text-center text-sm text-[#5d6c7b]">Đang tải…</p>
+        <p className="py-8 text-center text-sm text-muted-foreground">Đang tải…</p>
       ) : rules.length === 0 ? (
-        <p className="py-8 text-center text-sm text-[#5d6c7b]">Chưa có quy tắc nào.</p>
+        <p className="py-8 text-center text-sm text-muted-foreground">Chưa có quy tắc nào.</p>
       ) : (
-        <ul className="divide-y divide-[#eef1f4] rounded-2xl border border-[#dee3e9]">
+        <ul className="divide-y divide-border rounded-2xl border border-border">
           {rules.map((r) =>
             editingId === r._id ? (
               <li key={r._id} className="px-4 py-3">
@@ -191,22 +191,22 @@ export default function AutoRepliesPage() {
                     onChange={(e) => setEditTrigger(e.target.value)}
                     rows={2}
                     placeholder="Trigger (nhiều trigger ngăn bằng ;)"
-                    className="min-h-[40px] resize-y rounded-xl border-0 bg-[#f1f4f7] px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#1876f2]"
+                    className="min-h-[40px] resize-y rounded-xl border-0 bg-secondary px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
                   />
                   <textarea
                     value={editReply}
                     onChange={(e) => setEditReply(e.target.value)}
                     rows={2}
                     placeholder="Nội dung trả lời"
-                    className="min-h-[40px] resize-y rounded-xl border-0 bg-[#f1f4f7] px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#1876f2]"
+                    className="min-h-[40px] resize-y rounded-xl border-0 bg-secondary px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
                   />
                 </div>
-                {editError && <p className="mt-2 text-sm text-[#b42318]">{editError}</p>}
+                {editError && <p className="mt-2 text-sm text-destructive">{editError}</p>}
                 <div className="mt-2 flex items-center gap-2">
                   <button
                     onClick={() => saveEdit(r._id)}
                     disabled={editSaving}
-                    className="flex items-center gap-1.5 rounded-full bg-[#0064e0] px-3 py-1.5 text-xs font-semibold text-white hover:bg-[#0457cb] disabled:bg-[#bcc0c4]"
+                    className="flex items-center gap-1.5 rounded-full bg-primary px-3 py-1.5 text-xs font-semibold text-white hover:bg-primary/90 disabled:bg-input-strong"
                   >
                     {editSaving ? (
                       <Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -218,7 +218,7 @@ export default function AutoRepliesPage() {
                   <button
                     onClick={cancelEdit}
                     disabled={editSaving}
-                    className="flex items-center gap-1.5 rounded-full bg-[#f1f4f7] px-3 py-1.5 text-xs font-medium text-[#5d6c7b] hover:bg-[#e4e8ec]"
+                    className="flex items-center gap-1.5 rounded-full bg-secondary px-3 py-1.5 text-xs font-medium text-muted-foreground hover:bg-muted"
                   >
                     <X className="h-3.5 w-3.5" />
                     Huỷ
@@ -228,10 +228,10 @@ export default function AutoRepliesPage() {
             ) : (
               <li key={r._id} className="flex items-center gap-3 px-4 py-3">
                 <div className="min-w-0 flex-1">
-                  <div className="truncate text-sm font-semibold text-[#0a1317]">
+                  <div className="truncate text-sm font-semibold text-foreground">
                     {r.trigger}
                   </div>
-                  <div className="truncate text-sm text-[#5d6c7b]">{r.reply}</div>
+                  <div className="truncate text-sm text-muted-foreground">{r.reply}</div>
                 </div>
                 <button
                   type="button"
@@ -240,8 +240,8 @@ export default function AutoRepliesPage() {
                   aria-label={r.enabled ? "Tắt quy tắc" : "Bật quy tắc"}
                   onClick={() => toggle(r)}
                   className={
-                    "relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-[#1876f2] focus:ring-offset-2 " +
-                    (r.enabled ? "bg-[#1a7f37]" : "bg-[#c9d0d8]")
+                    "relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 " +
+                    (r.enabled ? "bg-success" : "bg-border")
                   }
                 >
                   <span
@@ -254,14 +254,14 @@ export default function AutoRepliesPage() {
                 <button
                   onClick={() => startEdit(r)}
                   aria-label="Sửa"
-                  className="shrink-0 text-[#5d6c7b] hover:text-[#0064e0]"
+                  className="shrink-0 text-muted-foreground hover:text-primary"
                 >
                   <Pencil className="h-4 w-4" />
                 </button>
                 <button
                   onClick={() => remove(r._id)}
                   aria-label="Xoá"
-                  className="shrink-0 text-[#5d6c7b] hover:text-[#b42318]"
+                  className="shrink-0 text-muted-foreground hover:text-destructive"
                 >
                   <Trash2 className="h-4 w-4" />
                 </button>

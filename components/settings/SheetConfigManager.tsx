@@ -24,15 +24,15 @@ function GoogleCard() {
   const connected = data?.connected && data?.scopeOk;
 
   return (
-    <div className="mb-6 rounded-2xl border border-[#dee3e9] p-4">
+    <div className="mb-6 rounded-2xl border border-border p-4">
       <div className="flex items-center gap-3">
         {connected ? (
-          <CheckCircle2 className="h-5 w-5 shrink-0 text-[#1a7f37]" />
+          <CheckCircle2 className="h-5 w-5 shrink-0 text-success-foreground" />
         ) : (
-          <AlertTriangle className="h-5 w-5 shrink-0 text-[#b54708]" />
+          <AlertTriangle className="h-5 w-5 shrink-0 text-warning-foreground" />
         )}
         <div className="min-w-0 flex-1">
-          <p className="text-sm font-semibold text-[#0a1317]">
+          <p className="text-sm font-semibold text-foreground">
             {isLoading
               ? "Đang kiểm tra kết nối Google…"
               : connected
@@ -40,7 +40,7 @@ function GoogleCard() {
                 : "Chưa cấp quyền Google Sheets"}
           </p>
           {!connected && !isLoading ? (
-            <p className="mt-0.5 text-xs text-[#5d6c7b]">
+            <p className="mt-0.5 text-xs text-muted-foreground">
               Cần cấp quyền đọc/ghi Google Sheets để dùng tính năng cập nhật đơn.
             </p>
           ) : null}
@@ -48,7 +48,7 @@ function GoogleCard() {
         {!connected && !isLoading ? (
           <button
             onClick={() => signIn("google", { redirectTo: "/settings" })}
-            className="shrink-0 rounded-full bg-[#0064e0] px-4 py-2 text-sm font-semibold text-white hover:bg-[#0457cb]"
+            className="shrink-0 rounded-full bg-primary px-4 py-2 text-sm font-semibold text-white hover:bg-primary/90"
           >
             Kết nối Google Sheets
           </button>
@@ -65,27 +65,27 @@ function ConfigRow({ cfg }: { cfg: SheetConfigDTO }) {
     <li className="flex flex-col gap-2 px-4 py-3 sm:flex-row sm:items-center sm:gap-3">
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-1.5">
-          <span className="truncate text-sm font-semibold text-[#0a1317]">{cfg.title}</span>
+          <span className="truncate text-sm font-semibold text-foreground">{cfg.title}</span>
           <a
             href={cfg.spreadsheetUrl}
             target="_blank"
             rel="noreferrer"
-            className="shrink-0 text-[#5d6c7b] hover:text-[#0064e0]"
+            className="shrink-0 text-muted-foreground hover:text-primary"
             aria-label="Mở Google Sheet"
           >
             <ExternalLink className="h-3.5 w-3.5" />
           </a>
         </div>
-        <div className="truncate text-xs text-[#5d6c7b]">
+        <div className="truncate text-xs text-muted-foreground">
           Tab: {cfg.dataTabName} · {cfg.rowCount} dòng · {fmtTime(cfg.lastSyncedAt)}
         </div>
         {cfg.shopNames.length > 0 ? (
-          <div className="mt-0.5 truncate text-xs text-[#9aa6b2]">
+          <div className="mt-0.5 truncate text-xs text-muted-foreground">
             Store: {cfg.shopNames.join(", ")}
           </div>
         ) : null}
         {cfg.lastSyncError ? (
-          <div className="mt-0.5 truncate text-xs text-[#b42318]">Lỗi: {cfg.lastSyncError}</div>
+          <div className="mt-0.5 truncate text-xs text-destructive">Lỗi: {cfg.lastSyncError}</div>
         ) : null}
       </div>
 
@@ -93,7 +93,7 @@ function ConfigRow({ cfg }: { cfg: SheetConfigDTO }) {
         <button
           onClick={() => sync.mutate(cfg.id)}
           disabled={sync.isPending}
-          className="flex items-center gap-1 rounded-full bg-[#f1f4f7] px-3 py-1.5 text-xs font-medium text-[#0a1317] hover:bg-[#e4e8ec] disabled:opacity-50"
+          className="flex items-center gap-1 rounded-full bg-secondary px-3 py-1.5 text-xs font-medium text-foreground hover:bg-muted disabled:opacity-50"
         >
           {sync.isPending ? (
             <Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -110,7 +110,7 @@ function ConfigRow({ cfg }: { cfg: SheetConfigDTO }) {
           onClick={() => update.mutate({ id: cfg.id, patch: { enabled: !cfg.enabled } })}
           className={
             "relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors " +
-            (cfg.enabled ? "bg-[#1a7f37]" : "bg-[#c9d0d8]")
+            (cfg.enabled ? "bg-success-foreground" : "bg-border")
           }
         >
           <span
@@ -125,7 +125,7 @@ function ConfigRow({ cfg }: { cfg: SheetConfigDTO }) {
             if (confirm(`Xoá kết nối "${cfg.title}"?`)) remove.mutate(cfg.id);
           }}
           aria-label="Xoá"
-          className="shrink-0 text-[#5d6c7b] hover:text-[#b42318]"
+          className="shrink-0 text-muted-foreground hover:text-destructive"
         >
           <Trash2 className="h-4 w-4" />
         </button>
@@ -166,29 +166,29 @@ export function SheetConfigManager() {
     <div>
       <GoogleCard />
 
-      <h2 className="mb-3 text-base font-semibold text-[#0a1317]">Sheet đã kết nối</h2>
+      <h2 className="mb-3 text-base font-semibold text-foreground">Sheet đã kết nối</h2>
 
       {/* Form thêm */}
-      <div className="mb-6 rounded-2xl border border-[#dee3e9] p-4">
+      <div className="mb-6 rounded-2xl border border-border p-4">
         <div className="grid gap-3 sm:grid-cols-[1fr_180px]">
           <input
             value={url}
             onChange={(e) => setUrl(e.target.value)}
             placeholder="Dán URL Google Sheet…"
-            className="rounded-xl border-0 bg-[#f1f4f7] px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#1876f2]"
+            className="rounded-xl border-0 bg-secondary px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
           />
           <input
             value={dataTabName}
             onChange={(e) => setDataTabName(e.target.value)}
             placeholder="Tab dữ liệu (mặc định: Order)"
-            className="rounded-xl border-0 bg-[#f1f4f7] px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#1876f2]"
+            className="rounded-xl border-0 bg-secondary px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
           />
         </div>
-        {error && <p className="mt-2 text-sm text-[#b42318]">{error}</p>}
+        {error && <p className="mt-2 text-sm text-destructive">{error}</p>}
         <button
           onClick={submit}
           disabled={add.isPending}
-          className="mt-3 flex items-center gap-1.5 rounded-full bg-[#0064e0] px-4 py-2 text-sm font-semibold text-white hover:bg-[#0457cb] disabled:bg-[#bcc0c4]"
+          className="mt-3 flex items-center gap-1.5 rounded-full bg-primary px-4 py-2 text-sm font-semibold text-white hover:bg-primary/90 disabled:bg-input-strong"
         >
           {add.isPending ? (
             <Loader2 className="h-4 w-4 animate-spin" />
@@ -201,11 +201,11 @@ export function SheetConfigManager() {
 
       {/* Danh sách */}
       {query.isLoading ? (
-        <p className="py-8 text-center text-sm text-[#5d6c7b]">Đang tải…</p>
+        <p className="py-8 text-center text-sm text-muted-foreground">Đang tải…</p>
       ) : configs.length === 0 ? (
-        <p className="py-8 text-center text-sm text-[#5d6c7b]">Chưa kết nối sheet nào.</p>
+        <p className="py-8 text-center text-sm text-muted-foreground">Chưa kết nối sheet nào.</p>
       ) : (
-        <ul className="divide-y divide-[#eef1f4] rounded-2xl border border-[#dee3e9]">
+        <ul className="divide-y divide-border rounded-2xl border border-border">
           {configs.map((cfg) => (
             <ConfigRow key={cfg.id} cfg={cfg} />
           ))}

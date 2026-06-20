@@ -18,7 +18,6 @@ export const metadata: Metadata = {
 }
 
 export const viewport: Viewport = {
-  colorScheme: 'light',
   themeColor: '#0064e0',
 }
 
@@ -28,7 +27,7 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="vi" className={`${geistSans.variable} ${geistMono.variable} bg-background`}>
+    <html lang="vi" suppressHydrationWarning className={`${geistSans.variable} ${geistMono.variable} bg-background`}>
       <body className="font-sans antialiased">
         <Providers>
           <div className="flex h-dvh w-full overflow-hidden bg-background text-foreground">

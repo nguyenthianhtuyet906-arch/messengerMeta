@@ -53,7 +53,7 @@ const Bubble = memo(function Bubble({
   if (m.isSystem) {
     return (
       <div className="my-1 flex justify-center px-6">
-        <span className="rounded-full bg-[#eef1f4] px-3 py-1 text-xs text-[#5d6c7b]">
+        <span className="rounded-full bg-muted px-3 py-1 text-xs text-muted-foreground">
           {etsyText(m.message)}
         </span>
       </div>
@@ -69,7 +69,7 @@ const Bubble = memo(function Bubble({
         <div
           className={cn(
             "rounded-3xl px-4 py-2.5 text-sm leading-relaxed whitespace-pre-wrap break-words",
-            m.fromMe ? "bg-[#0064e0] text-white" : "bg-[#f1f4f7] text-[#0a1317]",
+            m.fromMe ? "bg-primary text-white" : "bg-secondary text-foreground",
           )}
         >
           {etsyText(m.message)}
@@ -98,13 +98,13 @@ const Bubble = memo(function Bubble({
         <div className="flex max-w-[75%] items-end gap-2">
           <Avatar className="h-7 w-7 shrink-0" title={buyerName}>
             {buyerAvatar ? <AvatarImage src={buyerAvatar} alt={buyerName} /> : null}
-            <AvatarFallback className="bg-[#eef1f4] text-[10px] font-bold text-[#5d6c7b]">
+            <AvatarFallback className="bg-muted text-[10px] font-bold text-muted-foreground">
               {initials(buyerName || "?")}
             </AvatarFallback>
           </Avatar>
           <div className="min-w-0">{bubble}</div>
         </div>
-        <span className="ml-9 mt-0.5 text-[11px] text-[#9aa6b2]">
+        <span className="ml-9 mt-0.5 text-[11px] text-muted-foreground">
           {timeAgo(m.createDate)}
         </span>
       </div>
@@ -117,12 +117,12 @@ const Bubble = memo(function Bubble({
         <div className="min-w-0">{bubble}</div>
         <Avatar className="h-7 w-7 shrink-0" title={m.senderName || m.senderEmail}>
           {m.senderAvatar ? <AvatarImage src={m.senderAvatar} alt={m.senderName} /> : null}
-          <AvatarFallback className="bg-[#e7f0fb] text-[10px] font-bold text-[#0064e0]">
+          <AvatarFallback className="bg-accent text-[10px] font-bold text-primary">
             {initials(m.senderName || "?")}
           </AvatarFallback>
         </Avatar>
       </div>
-      <span className="mr-9 mt-0.5 text-[11px] text-[#9aa6b2]">
+      <span className="mr-9 mt-0.5 text-[11px] text-muted-foreground">
         {m.senderName ? `${m.senderName} · ` : ""}
         {timeAgo(m.createDate)}
       </span>
@@ -137,13 +137,13 @@ const PendingBubble = memo(function PendingBubble({ p }: { p: PendingMessage }) 
         className={cn(
           "max-w-[70%] rounded-3xl px-4 py-2.5 text-sm leading-relaxed whitespace-pre-wrap break-words",
           p.status === "failed"
-            ? "bg-[#fde8e8] text-[#b42318]"
-            : "bg-[#0064e0]/70 text-white",
+            ? "bg-destructive-soft text-destructive"
+            : "bg-primary/70 text-white",
         )}
       >
         {p.text}
       </div>
-      <span className="mt-0.5 text-[11px] text-[#9aa6b2]">
+      <span className="mt-0.5 text-[11px] text-muted-foreground">
         {p.status === "failed" ? "Gửi thất bại" : "Đang gửi…"}
       </span>
     </div>
@@ -224,16 +224,16 @@ export function MessageList({
 
   return (
     <>
-      <div ref={parentRef} className="min-h-0 flex-1 overflow-y-auto bg-white py-4">
+      <div ref={parentRef} className="min-h-0 flex-1 overflow-y-auto bg-card py-4">
         {isLoading ? (
-          <p className="py-8 text-center text-sm text-[#5d6c7b]">Đang tải tin nhắn…</p>
+          <p className="py-8 text-center text-sm text-muted-foreground">Đang tải tin nhắn…</p>
         ) : empty ? (
-          <p className="py-8 text-center text-sm text-[#5d6c7b]">Chưa có tin nhắn.</p>
+          <p className="py-8 text-center text-sm text-muted-foreground">Chưa có tin nhắn.</p>
         ) : (
           <>
             <div style={{ height: virtualizer.getTotalSize(), position: "relative" }}>
               {isFetchingNextPage && (
-                <div className="absolute left-0 top-0 w-full text-center text-xs text-[#5d6c7b]">
+                <div className="absolute left-0 top-0 w-full text-center text-xs text-muted-foreground">
                   Đang tải tin cũ…
                 </div>
               )}

@@ -29,31 +29,31 @@ export function DashboardDateFilter({ presetKey, range, onChange }: Props) {
           className={cn(
             "rounded-full px-4 py-2 text-sm font-bold transition-colors",
             presetKey === p.key
-              ? "bg-[#0064e0] text-white"
-              : "border border-[#dee3e9] bg-white text-[#5d6c7b] hover:bg-[#f1f4f7]",
+              ? "bg-primary text-white"
+              : "border border-border bg-card text-muted-foreground hover:bg-secondary",
           )}
         >
           {p.label}
         </button>
       ))}
 
-      <div className="flex items-center gap-1 rounded-full border border-[#dee3e9] bg-white px-3 py-1.5">
+      <div className="flex items-center gap-1 rounded-full border border-border bg-card px-3 py-1.5">
         <input
           type="date"
           value={secToDateInput(range.from)}
           onChange={(e) =>
             onChange("custom", { from: dateInputToFrom(e.target.value), to: range.to })
           }
-          className="bg-transparent text-sm text-[#0a1317] outline-none"
+          className="bg-transparent text-sm text-foreground outline-none"
         />
-        <span className="text-[#5d6c7b]">–</span>
+        <span className="text-muted-foreground">–</span>
         <input
           type="date"
           value={secToDateInput(range.to)}
           onChange={(e) =>
             onChange("custom", { from: range.from, to: dateInputToTo(e.target.value) })
           }
-          className="bg-transparent text-sm text-[#0a1317] outline-none"
+          className="bg-transparent text-sm text-foreground outline-none"
         />
       </div>
     </div>

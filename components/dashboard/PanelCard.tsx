@@ -17,17 +17,17 @@ export function PanelCard({ title, subtitle, loading, tools, className, children
   return (
     <section
       className={cn(
-        "relative flex flex-col rounded-3xl border border-[#dee3e9] bg-white p-6",
+        "relative flex flex-col rounded-3xl border border-border bg-card p-6",
         className,
       )}
     >
       <div className="mb-4 flex items-start justify-between gap-3">
         <div>
-          <h2 className="text-lg font-medium tracking-tight text-[#0a1317]">{title}</h2>
-          {subtitle && <p className="mt-0.5 text-xs text-[#5d6c7b]">{subtitle}</p>}
+          <h2 className="text-lg font-medium tracking-tight text-foreground">{title}</h2>
+          {subtitle && <p className="mt-0.5 text-xs text-muted-foreground">{subtitle}</p>}
         </div>
         <div className="flex items-center gap-2">
-          {loading && <Loader2 className="h-4 w-4 animate-spin text-[#0064e0]" />}
+          {loading && <Loader2 className="h-4 w-4 animate-spin text-primary" />}
           {tools}
         </div>
       </div>
@@ -49,17 +49,17 @@ export function StatCard({
   children?: React.ReactNode;
 }) {
   const valueColor =
-    tone === "danger" ? "text-[#e41e3f]" : tone === "success" ? "text-[#31a24c]" : "text-[#0a1317]";
+    tone === "danger" ? "text-destructive" : tone === "success" ? "text-success" : "text-foreground";
   const border =
     tone === "danger"
-      ? "border-[#f5c6ce]"
+      ? "border-destructive-soft"
       : tone === "success"
-        ? "border-[#bfe6c8]"
-        : "border-[#dee3e9]";
+        ? "border-success-soft"
+        : "border-border";
   return (
-    <div className={cn("flex flex-col rounded-2xl border bg-white p-4", border)}>
+    <div className={cn("flex flex-col rounded-2xl border bg-card p-4", border)}>
       <span className={cn("text-3xl font-medium tracking-tight", valueColor)}>{value}</span>
-      <span className="mt-1 text-sm text-[#5d6c7b]">{label}</span>
+      <span className="mt-1 text-sm text-muted-foreground">{label}</span>
       {children}
     </div>
   );

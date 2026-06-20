@@ -51,14 +51,14 @@ export function TagFilter({
         className={cn(
           "flex w-full items-center justify-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition-colors",
           selected.length > 0
-            ? "border-[#0064e0] bg-[#e7f0fb] text-[#0064e0]"
-            : "border-[#dee3e9] text-[#5d6c7b] hover:bg-[#f1f4f7]",
+            ? "border-primary bg-accent text-primary"
+            : "border-border text-muted-foreground hover:bg-secondary",
         )}
       >
         <Tag className="h-3.5 w-3.5" />
         Thẻ
         {selected.length > 0 && (
-          <span className="rounded-full bg-[#0064e0] px-1.5 text-[10px] font-bold text-white">
+          <span className="rounded-full bg-primary px-1.5 text-[10px] font-bold text-white">
             {selected.length}
           </span>
         )}
@@ -66,19 +66,19 @@ export function TagFilter({
       </button>
 
       {open && (
-        <div className="absolute left-0 z-20 mt-1 max-h-72 w-64 overflow-y-auto rounded-xl border border-[#dee3e9] bg-white py-1 shadow-lg">
+        <div className="absolute left-0 z-20 mt-1 max-h-72 w-64 overflow-y-auto rounded-xl border border-border bg-card py-1 shadow-lg">
           {selected.length > 0 && (
             <button
               onClick={() => onChange([])}
-              className="w-full px-3 py-1.5 text-left text-xs text-[#0064e0] hover:bg-[#f1f4f7]"
+              className="w-full px-3 py-1.5 text-left text-xs text-primary hover:bg-secondary"
             >
               Bỏ chọn tất cả
             </button>
           )}
           {isLoading ? (
-            <p className="px-3 py-3 text-center text-xs text-[#5d6c7b]">Đang tải…</p>
+            <p className="px-3 py-3 text-center text-xs text-muted-foreground">Đang tải…</p>
           ) : rows.length === 0 ? (
-            <p className="px-3 py-3 text-center text-xs text-[#5d6c7b]">Chưa có thẻ nào</p>
+            <p className="px-3 py-3 text-center text-xs text-muted-foreground">Chưa có thẻ nào</p>
           ) : (
             rows.map(({ tag, count }) => {
               const isSel = selected.includes(tag);
@@ -86,7 +86,7 @@ export function TagFilter({
                 <button
                   key={tag}
                   onClick={() => toggle(tag)}
-                  className="flex w-full items-center gap-2 px-3 py-2 text-left hover:bg-[#f1f4f7]"
+                  className="flex w-full items-center gap-2 px-3 py-2 text-left hover:bg-secondary"
                 >
                   <span
                     className={cn(
@@ -96,8 +96,8 @@ export function TagFilter({
                   >
                     {tagLabel(tag)}
                   </span>
-                  <span className="text-xs text-[#9aa6b2]">{count}</span>
-                  {isSel && <Check className="ml-auto h-4 w-4 shrink-0 text-[#0064e0]" />}
+                  <span className="text-xs text-muted-foreground">{count}</span>
+                  {isSel && <Check className="ml-auto h-4 w-4 shrink-0 text-primary" />}
                 </button>
               );
             })

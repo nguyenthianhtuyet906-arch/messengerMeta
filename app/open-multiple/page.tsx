@@ -40,16 +40,16 @@ export default function OpenMultiplePage() {
         <button
           type="button"
           onClick={cancel}
-          className="mb-6 inline-flex items-center gap-2 text-sm font-bold text-[#5d6c7b] transition-colors hover:text-[#0a1317]"
+          className="mb-6 inline-flex items-center gap-2 text-sm font-bold text-muted-foreground transition-colors hover:text-foreground"
         >
           <ArrowLeft className="h-4 w-4" />
           Quay lại
         </button>
 
-        <h1 className="text-2xl font-medium tracking-tight text-[#0a1317]">
+        <h1 className="text-2xl font-medium tracking-tight text-foreground">
           Mở nhiều hội thoại
         </h1>
-        <p className="mt-1 text-sm text-[#5d6c7b]">
+        <p className="mt-1 text-sm text-muted-foreground">
           {entries.length} hội thoại sẵn sàng. Chọn số lượng muốn mở thành các tab trong Messenger.
         </p>
 
@@ -59,7 +59,7 @@ export default function OpenMultiplePage() {
             type="button"
             onClick={() => open(entries.length)}
             disabled={entries.length === 0}
-            className="inline-flex items-center gap-2 rounded-full bg-[#0064e0] px-5 py-2.5 text-sm font-bold text-white transition-colors hover:bg-[#0457cb] disabled:opacity-40"
+            className="inline-flex items-center gap-2 rounded-full bg-primary px-5 py-2.5 text-sm font-bold text-white transition-colors hover:bg-primary/90 disabled:opacity-40"
           >
             <ExternalLink className="h-4 w-4" />
             Mở tất cả ({entries.length})
@@ -69,7 +69,7 @@ export default function OpenMultiplePage() {
               key={n}
               type="button"
               onClick={() => open(n)}
-              className="inline-flex items-center gap-2 rounded-full border border-[#dee3e9] bg-white px-4 py-2.5 text-sm font-bold text-[#0a1317] transition-colors hover:bg-[#f1f4f7]"
+              className="inline-flex items-center gap-2 rounded-full border border-border bg-card px-4 py-2.5 text-sm font-bold text-foreground transition-colors hover:bg-secondary"
             >
               Mở {n}
             </button>
@@ -77,7 +77,7 @@ export default function OpenMultiplePage() {
           <button
             type="button"
             onClick={cancel}
-            className="inline-flex items-center gap-2 rounded-full border border-[#dee3e9] bg-white px-4 py-2.5 text-sm font-bold text-[#5d6c7b] transition-colors hover:bg-[#f1f4f7]"
+            className="inline-flex items-center gap-2 rounded-full border border-border bg-card px-4 py-2.5 text-sm font-bold text-muted-foreground transition-colors hover:bg-secondary"
           >
             <X className="h-4 w-4" />
             Huỷ
@@ -85,30 +85,30 @@ export default function OpenMultiplePage() {
         </div>
 
         {/* Danh sách */}
-        <div className="mt-8 overflow-hidden rounded-3xl border border-[#dee3e9] bg-white">
+        <div className="mt-8 overflow-hidden rounded-3xl border border-border bg-card">
           {entries.length === 0 ? (
-            <div className="px-6 py-12 text-center text-sm text-[#5d6c7b]">
+            <div className="px-6 py-12 text-center text-sm text-muted-foreground">
               Không có hội thoại nào. Hãy mở lại từ Dashboard.
             </div>
           ) : (
-            <ul className="divide-y divide-[#dee3e9]">
+            <ul className="divide-y divide-border">
               {entries.slice(0, 200).map((e, idx) => (
                 <li
                   key={e.id}
                   className="flex items-center gap-3 px-6 py-3 text-sm"
                 >
-                  <span className="w-6 shrink-0 text-xs text-[#5d6c7b]">{idx + 1}</span>
-                  <MessageCircle className="h-4 w-4 shrink-0 text-[#0064e0]" />
-                  <span className="min-w-0 flex-1 truncate font-bold text-[#0a1317]">
+                  <span className="w-6 shrink-0 text-xs text-muted-foreground">{idx + 1}</span>
+                  <MessageCircle className="h-4 w-4 shrink-0 text-primary" />
+                  <span className="min-w-0 flex-1 truncate font-bold text-foreground">
                     {e.name || `Hội thoại ${e.id}`}
                   </span>
-                  <span className="shrink-0 text-xs text-[#5d6c7b]">#{e.id}</span>
+                  <span className="shrink-0 text-xs text-muted-foreground">#{e.id}</span>
                 </li>
               ))}
             </ul>
           )}
           {entries.length > 200 && (
-            <div className="px-6 py-3 text-center text-xs text-[#5d6c7b]">
+            <div className="px-6 py-3 text-center text-xs text-muted-foreground">
               + {entries.length - 200} hội thoại khác
             </div>
           )}

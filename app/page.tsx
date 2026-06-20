@@ -30,8 +30,8 @@ export default function DashboardPage() {
         {/* Header + global date filter */}
         <div className="mb-6 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div>
-            <h1 className="text-2xl font-medium tracking-tight text-[#0a1317]">Dashboard</h1>
-            <p className="mt-1 text-sm text-[#5d6c7b]">Tổng quan tin nhắn &amp; năng suất</p>
+            <h1 className="text-2xl font-medium tracking-tight text-foreground">Dashboard</h1>
+            <p className="mt-1 text-sm text-muted-foreground">Tổng quan tin nhắn &amp; năng suất</p>
           </div>
           <DashboardDateFilter presetKey={presetKey} range={range} onChange={handleChange} />
         </div>

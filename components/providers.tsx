@@ -3,7 +3,19 @@
 import { useState } from "react";
 import { SessionProvider } from "next-auth/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { ThemeProvider, useTheme } from "next-themes";
 import { Toaster } from "sonner";
+
+function ThemedToaster() {
+  const { resolvedTheme } = useTheme();
+  return (
+    <Toaster
+      richColors
+      position="top-center"
+      theme={resolvedTheme === "dark" ? "dark" : "light"}
+    />
+  );
+}
 
 export function Providers({ children }: { children: React.ReactNode }) {
   const [queryClient] = useState(
@@ -23,8 +35,15 @@ export function Providers({ children }: { children: React.ReactNode }) {
   return (
     <SessionProvider>
       <QueryClientProvider client={queryClient}>
-        {children}
-        <Toaster richColors position="top-center" />
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="light"
+          enableSystem={false}
+          disableTransitionOnChange
+        >
+          {children}
+          <ThemedToaster />
+        </ThemeProvider>
       </QueryClientProvider>
     </SessionProvider>
   );
