@@ -326,3 +326,23 @@ export interface TagsOverviewResponse {
   totals: OverviewTotals;
   tags: TagOverviewRow[];
 }
+
+/** Collection `message_templates` — mẫu câu sẵn do nhân viên tạo. */
+export interface MessageTemplateDoc {
+  _id?: ObjectId;
+  email: string;
+  title: string;
+  content: string;
+  created_at: Date;
+  updated_at: Date;
+}
+
+/** DTO mẫu câu sẵn trả về client. */
+export interface MessageTemplate {
+  _id: string;
+  email: string;
+  title: string;
+  content: string;
+  created_at: string;
+  updated_at: string;
+}

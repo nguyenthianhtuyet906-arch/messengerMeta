@@ -1,6 +1,6 @@
 import type { Collection, Db } from "mongodb";
 import clientPromise from "@/lib/mongodb-client";
-import type { AutoReplyDoc, ConversationDoc, MessageDoc } from "@/lib/types/etsy";
+import type { AutoReplyDoc, ConversationDoc, MessageDoc, MessageTemplateDoc } from "@/lib/types/etsy";
 import type { SheetConfigDoc, SheetRowDoc } from "@/lib/types/sheets";
 import type { OrderStatusDoc } from "@/lib/types/order-status";
 import { ensureIndexes } from "@/lib/db/indexes";
@@ -59,4 +59,9 @@ export async function getSheetRowsCollection(): Promise<Collection<SheetRowDoc>>
 export async function getOrderStatusesCollection(): Promise<Collection<OrderStatusDoc>> {
   const db = await getDb();
   return db.collection<OrderStatusDoc>("order_statuses");
+}
+
+export async function getMessageTemplatesCollection(): Promise<Collection<MessageTemplateDoc>> {
+  const db = await getDb();
+  return db.collection<MessageTemplateDoc>("message_templates");
 }

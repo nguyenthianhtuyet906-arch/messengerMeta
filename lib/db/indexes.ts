@@ -64,6 +64,11 @@ const MESSAGE_INDEXES: IndexDef[] = [
   },
 ];
 
+const MESSAGE_TEMPLATE_INDEXES: IndexDef[] = [
+  { keys: { email: 1 }, options: { name: "idx_email" } },
+  { keys: { created_at: -1 }, options: { name: "idx_created_at" } },
+];
+
 const AUTO_REPLY_INDEXES: IndexDef[] = [
   // Khớp runtime: lọc enabled=true rồi so token chuẩn hoá; chống trùng trigger.
   { keys: { enabled: 1 }, options: { name: "idx_enabled" } },
@@ -115,4 +120,5 @@ export async function ensureIndexes(db: Db): Promise<void> {
   await createIndexes(db, "auto_reply_messages", AUTO_REPLY_INDEXES);
   await createIndexes(db, "sheet_configs", SHEET_CONFIG_INDEXES);
   await createIndexes(db, "sheet_rows", SHEET_ROW_INDEXES);
+  await createIndexes(db, "message_templates", MESSAGE_TEMPLATE_INDEXES);
 }

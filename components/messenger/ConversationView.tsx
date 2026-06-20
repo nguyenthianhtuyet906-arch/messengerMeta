@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  useEffect,
   useLayoutEffect,
   useRef,
   useState,
@@ -9,7 +10,8 @@ import {
   type KeyboardEvent,
 } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { Send, Info, StickyNote, Paperclip, X, Loader2, Sparkles } from "lucide-react";
+import { Send, Info, StickyNote, Paperclip, X, Loader2, Sparkles, BookMarked } from "lucide-react";
+import { TemplatePicker } from "@/components/messenger/TemplatePicker";
 import { MessageList } from "@/components/messenger/MessageList";
 import { useSendMessage } from "@/lib/hooks/useSendMessage";
 import type { TabMeta } from "@/lib/store/tabs";
@@ -115,10 +117,18 @@ export function ConversationView({
   const removeAttachment = (url: string) =>
     setAttachments((prev) => prev.filter((u) => u !== url));
 
+  const [templateOpen, setTemplateOpen] = useState(false);
+
   // ---- Gợi ý AI (dùng chính ô chat làm định hướng) ----
-  const [aiOpen, setAiOpen] = useState(false);
+  const [aiOpen, setAiOpen] = useState(true);
   const [aiLoading, setAiLoading] = useState(false);
   const [aiResult, setAiResult] = useState<AIResponse | null>(null);
+
+  // Tự động fetch gợi ý AI khi mở conversation.
+  useEffect(() => {
+    void fetchAI();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [conversationId]);
 
   // Nội dung đang gõ trong ô chat = định hướng (input) cho AI; rỗng cũng được.
   const fetchAI = async () => {
@@ -272,7 +282,7 @@ export function ConversationView({
       )}
 
       {/* Composer */}
-      <div className="shrink-0 border-t border-[#dee3e9] px-6 py-4">
+      <div className="relative shrink-0 border-t border-[#dee3e9] px-6 py-4">
         {/* Preview ảnh đã chọn */}
         {(attachments.length > 0 || uploading) && (
           <div className="mb-3 flex flex-wrap gap-2">
@@ -300,6 +310,16 @@ export function ConversationView({
             )}
           </div>
         )}
+        {templateOpen && (
+          <TemplatePicker
+            onSelect={(content) => {
+              setDraft(content);
+              setTemplateOpen(false);
+              textareaRef.current?.focus();
+            }}
+            onClose={() => setTemplateOpen(false)}
+          />
+        )}
         <div className="flex items-end gap-2">
           <input
             ref={fileInputRef}
@@ -316,6 +336,19 @@ export function ConversationView({
             className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-[#5d6c7b] transition-colors hover:bg-[#f1f4f7] disabled:opacity-50"
           >
             <Paperclip className="h-5 w-5" />
+          </button>
+          <button
+            onClick={() => setTemplateOpen((v) => !v)}
+            aria-label="Mẫu câu sẵn"
+            aria-pressed={templateOpen}
+            className={
+              "flex h-11 w-11 shrink-0 items-center justify-center rounded-full transition-colors " +
+              (templateOpen
+                ? "bg-[#e7f0fb] text-[#0064e0]"
+                : "text-[#5d6c7b] hover:bg-[#f1f4f7]")
+            }
+          >
+            <BookMarked className="h-5 w-5" />
           </button>
           <textarea
             ref={textareaRef}
