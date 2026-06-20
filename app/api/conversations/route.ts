@@ -24,6 +24,7 @@ export async function GET(req: NextRequest) {
       sheetStatuses: sp.get("sheetStatuses")
         ? sp.get("sheetStatuses")!.split(",").map((s) => s.trim()).filter(Boolean)
         : undefined,
+      sort: sp.get("sort") === "asc" ? "asc" : "desc",
     });
     return NextResponse.json(data);
   } catch (err) {

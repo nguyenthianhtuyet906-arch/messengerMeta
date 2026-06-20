@@ -86,6 +86,7 @@ export interface ConversationFilterOpts {
   shopIds?: number[];
   tags?: string[];
   sheetStatuses?: string[];
+  sort?: "asc" | "desc";
 }
 
 export async function getConversations(
@@ -97,13 +98,19 @@ export async function getConversations(
   // Gom từng điều kiện thành clause rồi kết hợp bằng $and (mirror dora buildBaseFilter).
   const clauses: Record<string, unknown>[] = [];
 
+  const asc = opts.sort === "asc";
   const cursor = decodeCursor(opts.cursor ?? null);
   if (cursor) {
     clauses.push({
-      $or: [
-        { lastMessageDate: { $lt: cursor.d } },
-        { lastMessageDate: cursor.d, _id: { $lt: new ObjectId(cursor.id) } },
-      ],
+      $or: asc
+        ? [
+            { lastMessageDate: { $gt: cursor.d } },
+            { lastMessageDate: cursor.d, _id: { $gt: new ObjectId(cursor.id) } },
+          ]
+        : [
+            { lastMessageDate: { $lt: cursor.d } },
+            { lastMessageDate: cursor.d, _id: { $lt: new ObjectId(cursor.id) } },
+          ],
     });
   }
 
@@ -157,9 +164,10 @@ export async function getConversations(
     clauses.length > 0 ? ({ $and: clauses } as Filter<ConversationDoc>) : {};
 
   // limit+1 để biết còn trang sau không.
+  const sortDir = asc ? 1 : -1;
   const docs = (await coll
     .find(filter, { projection: LIST_PROJECTION })
-    .sort({ lastMessageDate: -1, _id: -1 })
+    .sort({ lastMessageDate: sortDir, _id: sortDir })
     .limit(limit + 1)
     .toArray()) as WithId<ConversationDoc>[];
 

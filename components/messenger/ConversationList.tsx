@@ -2,7 +2,7 @@
 
 import { memo, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
-import { Search, MessageSquareReply } from "lucide-react";
+import { Search, MessageSquareReply, ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { useConversations } from "@/lib/hooks/useConversations";
 import { ShopFilter } from "@/components/messenger/ShopFilter";
@@ -112,6 +112,12 @@ export function ConversationList() {
   const [search, setSearch] = useState("");
   const [orderHelp, setOrderHelp] = useState(false);
   const [notReplied, setNotReplied] = useState(false);
+  const [sort, setSort] = useState<"asc" | "desc">("desc");
+
+  // Khi bật Not Replied → tự chuyển sang cũ nhất trước; khi tắt → về mới nhất trước.
+  useEffect(() => {
+    setSort(notReplied ? "asc" : "desc");
+  }, [notReplied]);
   const [hasOrder, setHasOrder] = useState(false);
   const [hasNote, setHasNote] = useState(false);
   const [shopIds, setShopIds] = useState<number[]>([]);
@@ -127,8 +133,8 @@ export function ConversationList() {
   }, [searchInput]);
 
   const filters: ConversationFilters = useMemo(
-    () => ({ search, orderHelp, notReplied, hasOrder, hasNote, shopIds, tags: selectedTags, sheetStatuses: selectedSheetStatuses }),
-    [search, orderHelp, notReplied, hasOrder, hasNote, shopIds, selectedTags, selectedSheetStatuses],
+    () => ({ search, orderHelp, notReplied, hasOrder, hasNote, shopIds, tags: selectedTags, sheetStatuses: selectedSheetStatuses, sort }),
+    [search, orderHelp, notReplied, hasOrder, hasNote, shopIds, selectedTags, selectedSheetStatuses, sort],
   );
 
   const { items, data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading } =
@@ -183,14 +189,32 @@ export function ConversationList() {
       <div className="px-5 pt-6 pb-3">
         <div className="flex items-center justify-between">
           <h1 className="text-2xl font-medium tracking-tight text-[#0a1317]">Đoạn chat</h1>
-          <Link
-            href="/auto-replies"
-            title="Tự động trả lời"
-            aria-label="Tự động trả lời"
-            className="flex h-9 w-9 items-center justify-center rounded-full text-[#5d6c7b] transition-colors hover:bg-[#f1f4f7]"
-          >
-            <MessageSquareReply className="h-5 w-5" />
-          </Link>
+          <div className="flex items-center gap-1">
+            <button
+              onClick={() => setSort((v) => (v === "desc" ? "asc" : "desc"))}
+              title={sort === "desc" ? "Đang: Mới nhất trước — bấm để đổi sang Cũ nhất trước" : "Đang: Cũ nhất trước — bấm để đổi sang Mới nhất trước"}
+              className={cn(
+                "flex h-9 w-9 items-center justify-center rounded-full transition-colors",
+                sort === "asc"
+                  ? "bg-[#e7f0fb] text-[#0064e0]"
+                  : "text-[#5d6c7b] hover:bg-[#f1f4f7]",
+              )}
+            >
+              {sort === "desc" ? (
+                <ArrowDown className="h-4 w-4" />
+              ) : (
+                <ArrowUp className="h-4 w-4" />
+              )}
+            </button>
+            <Link
+              href="/auto-replies"
+              title="Tự động trả lời"
+              aria-label="Tự động trả lời"
+              className="flex h-9 w-9 items-center justify-center rounded-full text-[#5d6c7b] transition-colors hover:bg-[#f1f4f7]"
+            >
+              <MessageSquareReply className="h-5 w-5" />
+            </Link>
+          </div>
         </div>
         <div className="relative mt-4">
           <Search className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-[#5d6c7b]" />

@@ -150,6 +150,8 @@ export interface ConversationFilters {
   tags: string[];
   /** Lọc theo trạng thái đơn trên sheet (khớp bất kỳ status nào). */
   sheetStatuses: string[];
+  /** Thứ tự sắp xếp theo thời gian tin nhắn cuối. "asc" = cũ nhất trước. */
+  sort: "asc" | "desc";
 }
 
 /** 1 ghi chú trả về client (đã join tên/avatar tác giả). */
