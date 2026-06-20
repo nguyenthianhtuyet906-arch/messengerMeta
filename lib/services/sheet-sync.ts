@@ -3,6 +3,7 @@ import "server-only";
 import { ObjectId, type AnyBulkWriteOperation } from "mongodb";
 import { getSheetConfigsCollection, getSheetRowsCollection } from "@/lib/db/collections";
 import { getAuthorizedSheetsClient, isInvalidGrantError, GoogleNotConnectedError } from "@/lib/google/auth";
+import { bulkRefreshSheetStatuses } from "@/lib/services/conversation-sheet-status";
 import {
   findHeaderIndex,
   deriveReceiptTxKey,
@@ -81,6 +82,7 @@ export async function syncSheetNow(configId: ObjectId): Promise<{ rowCount: numb
 
     const rowsColl = await getSheetRowsCollection();
     let rowCount = 0;
+    const syncedReceiptIds = new Set<number>();
 
     if (itemIdIdx >= 0) {
       let ops: AnyBulkWriteOperation<SheetRowDoc>[] = [];
@@ -100,6 +102,10 @@ export async function syncSheetNow(configId: ObjectId): Promise<{ rowCount: numb
           const cell = row[c];
           values[h] = typeof cell === "string" ? cell : cell == null ? "" : String(cell);
         }
+
+        // Thu thập receiptId để sau sync cập nhật sheetStatuses trên conversations.
+        const receiptId = Number(key.split("-")[0]);
+        if (receiptId > 0) syncedReceiptIds.add(receiptId);
 
         const doc: Omit<SheetRowDoc, "_id"> = {
           configId,
@@ -133,6 +139,9 @@ export async function syncSheetNow(configId: ObjectId): Promise<{ rowCount: numb
 
       // Dọn dòng không còn xuất hiện trong lần sync này (đã bị xoá/đổi Item ID trên sheet).
       await rowsColl.deleteMany({ configId, syncedAt: { $lt: runStart } });
+
+      // Cập nhật sheetStatuses trên conversations sau khi sync xong (fire-and-forget).
+      void bulkRefreshSheetStatuses([...syncedReceiptIds]).catch(() => {});
     }
 
     await configs.updateOne(

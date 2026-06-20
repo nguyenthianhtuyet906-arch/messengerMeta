@@ -30,6 +30,11 @@ const CONVERSATION_INDEXES: IndexDef[] = [
     keys: { "notes.authorEmail": 1 },
     options: { name: "idx_notes_author", sparse: true },
   },
+  // Lọc theo trạng thái đơn sheet (sheetStatuses là mảng → multikey index).
+  {
+    keys: { sheetStatuses: 1 },
+    options: { name: "idx_sheet_statuses", sparse: true },
+  },
 ];
 
 const MESSAGE_INDEXES: IndexDef[] = [

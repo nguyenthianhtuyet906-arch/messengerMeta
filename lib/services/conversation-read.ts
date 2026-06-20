@@ -85,6 +85,7 @@ export interface ConversationFilterOpts {
   hasNote?: boolean;
   shopIds?: number[];
   tags?: string[];
+  sheetStatuses?: string[];
 }
 
 export async function getConversations(
@@ -145,6 +146,11 @@ export async function getConversations(
   // Lọc theo tag: khớp bất kỳ tag nào được chọn.
   if (opts.tags && opts.tags.length > 0) {
     clauses.push({ tags: { $in: opts.tags } });
+  }
+
+  // Lọc theo trạng thái đơn sheet: khớp bất kỳ status nào được chọn.
+  if (opts.sheetStatuses && opts.sheetStatuses.length > 0) {
+    clauses.push({ sheetStatuses: { $in: opts.sheetStatuses } });
   }
 
   const filter: Filter<ConversationDoc> =

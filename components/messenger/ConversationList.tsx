@@ -7,6 +7,7 @@ import { useVirtualizer } from "@tanstack/react-virtual";
 import { useConversations } from "@/lib/hooks/useConversations";
 import { ShopFilter } from "@/components/messenger/ShopFilter";
 import { TagFilter } from "@/components/messenger/TagFilter";
+import { SheetStatusFilter } from "@/components/messenger/SheetStatusFilter";
 import { useTabs } from "@/lib/store/tabs";
 import type { ConversationFilters, ConversationListItem } from "@/lib/types/etsy";
 import { tagClassName, tagLabel } from "@/lib/tags";
@@ -115,6 +116,7 @@ export function ConversationList() {
   const [hasNote, setHasNote] = useState(false);
   const [shopIds, setShopIds] = useState<number[]>([]);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  const [selectedSheetStatuses, setSelectedSheetStatuses] = useState<string[]>([]);
   const [bulkLoading, setBulkLoading] = useState(false);
   const { openTab, openMany, activeTabId } = useTabs();
 
@@ -125,8 +127,8 @@ export function ConversationList() {
   }, [searchInput]);
 
   const filters: ConversationFilters = useMemo(
-    () => ({ search, orderHelp, notReplied, hasOrder, hasNote, shopIds, tags: selectedTags }),
-    [search, orderHelp, notReplied, hasOrder, hasNote, shopIds, selectedTags],
+    () => ({ search, orderHelp, notReplied, hasOrder, hasNote, shopIds, tags: selectedTags, sheetStatuses: selectedSheetStatuses }),
+    [search, orderHelp, notReplied, hasOrder, hasNote, shopIds, selectedTags, selectedSheetStatuses],
   );
 
   const { items, data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading } =
@@ -224,6 +226,7 @@ export function ConversationList() {
           />
           <ShopFilter selected={shopIds} onChange={setShopIds} />
           <TagFilter selected={selectedTags} onChange={setSelectedTags} shopIds={shopIds} />
+          <SheetStatusFilter selected={selectedSheetStatuses} onChange={setSelectedSheetStatuses} />
         </div>
 
         {/* Mở nhanh nhiều hội thoại */}

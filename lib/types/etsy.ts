@@ -23,6 +23,8 @@ export interface ConversationDoc {
   notes?: NoteEntry[];
   /** Gợi ý AI gần nhất (agree/neutral/apologize + tag). Mirror DORA suggested_messages. */
   suggested_messages?: AIResponse | null;
+  /** Trạng thái đơn trên sheet (denormalized từ sheet_rows.values.Status). Dùng để lọc nhanh. */
+  sheetStatuses?: string[];
   lastMessageDate: number;
   created_at: Date;
   updated_at: Date;
@@ -146,6 +148,8 @@ export interface ConversationFilters {
   shopIds: number[];
   /** Lọc theo tag (khớp bất kỳ tag nào trong danh sách). */
   tags: string[];
+  /** Lọc theo trạng thái đơn trên sheet (khớp bất kỳ status nào). */
+  sheetStatuses: string[];
 }
 
 /** 1 ghi chú trả về client (đã join tên/avatar tác giả). */

@@ -2,6 +2,7 @@ import "server-only";
 
 import { ObjectId, type WithId } from "mongodb";
 import { getSheetConfigsCollection, getSheetRowsCollection } from "@/lib/db/collections";
+import { refreshConversationSheetStatuses } from "@/lib/services/conversation-sheet-status";
 import {
   getAuthorizedSheetsClient,
   GoogleNotConnectedError,
@@ -231,6 +232,16 @@ export async function writeOrderRow(opts: {
     );
 
     const updated = await rows.findOne({ spreadsheetId: cfg.spreadsheetId, itemId: opts.itemId });
+
+    // Nếu Status thay đổi → cập nhật sheetStatuses trên conversation (fire-and-forget).
+    if ("Status" in opts.updates) {
+      const receiptKey = updated?.receiptKey ?? opts.itemId.split("-").at(-2) ?? "";
+      const receiptId = Number(receiptKey);
+      if (Number.isFinite(receiptId) && receiptId > 0) {
+        void refreshConversationSheetStatuses(receiptId).catch(() => {});
+      }
+    }
+
     if (updated) return rowToMatch(updated, cfg);
 
     // Hiếm: dòng chưa có trong chỉ mục → dựng match từ dữ liệu vừa đọc.

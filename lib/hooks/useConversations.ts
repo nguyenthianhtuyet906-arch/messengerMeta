@@ -20,6 +20,7 @@ async function fetchConversations(
   if (filters.hasNote) params.set("hasNote", "true");
   if (filters.shopIds.length > 0) params.set("shopIds", filters.shopIds.join(","));
   if (filters.tags.length > 0) params.set("tags", filters.tags.join(","));
+  if (filters.sheetStatuses.length > 0) params.set("sheetStatuses", filters.sheetStatuses.join(","));
   params.set("limit", "30");
   const res = await fetch(`/api/conversations?${params.toString()}`);
   if (!res.ok) throw new Error(`conversations ${res.status}`);

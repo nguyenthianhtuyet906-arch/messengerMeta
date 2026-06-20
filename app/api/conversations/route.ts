@@ -21,6 +21,9 @@ export async function GET(req: NextRequest) {
       tags: tagsRaw
         ? tagsRaw.split(",").map((t) => t.trim()).filter(Boolean)
         : undefined,
+      sheetStatuses: sp.get("sheetStatuses")
+        ? sp.get("sheetStatuses")!.split(",").map((s) => s.trim()).filter(Boolean)
+        : undefined,
     });
     return NextResponse.json(data);
   } catch (err) {
