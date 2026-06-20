@@ -111,4 +111,6 @@ export const EDITABLE_SHEET_FIELDS = [
   "Order Note",
   "Personalization",
   "Customer Image",
+  "Design",
+  "Mockup",
 ] as const;

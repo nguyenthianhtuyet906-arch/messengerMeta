@@ -30,7 +30,7 @@ function toastSaveError(e: unknown) {
 }
 
 // Field hiển thị dạng nhiều dòng (Customer Image: mỗi dòng 1 link ảnh).
-const TEXTAREA_FIELDS = new Set(["Order Note", "Personalization", "Customer Image"]);
+const TEXTAREA_FIELDS = new Set(["Order Note", "Personalization", "Customer Image", "Design", "Mockup"]);
 // Cột khoá (không cho sửa trong popup) vì là khoá khớp dòng.
 const READONLY_FIELDS = new Set(["Item ID", "Order"]);
 
@@ -62,24 +62,108 @@ function CopyCode({ value, className }: { value: string; className?: string }) {
   );
 }
 
-/** Preview các link ảnh trong Customer Image (mỗi dòng 1 link). */
-function ImagePreviews({ value }: { value: string }) {
+/** Preview các link ảnh trong Customer Image — mỗi ảnh có nút X để xoá. */
+function ImagePreviews({ value, onChange }: { value: string; onChange?: (v: string) => void }) {
   const urls = value
     .split(/\r?\n/)
     .map((s) => s.trim())
     .filter(Boolean);
   if (urls.length === 0) return null;
+
+  const remove = (url: string) => {
+    if (!onChange) return;
+    const next = urls.filter((u) => u !== url).join("\n");
+    onChange(next);
+  };
+
   return (
     <div className="mt-1.5 flex flex-wrap gap-1.5">
       {urls.map((u, i) => (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img
-          key={`${i}-${u}`}
-          src={u}
-          alt=""
-          className="h-16 w-16 rounded-lg border border-[#dee3e9] object-cover"
-        />
+        <div key={`${i}-${u}`} className="group relative h-16 w-16 shrink-0">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={u}
+            alt=""
+            className="h-16 w-16 rounded-lg border border-[#dee3e9] object-cover"
+          />
+          {onChange ? (
+            <button
+              type="button"
+              onClick={() => remove(u)}
+              aria-label="Xoá ảnh"
+              className="absolute -right-1.5 -top-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-[#0a1317] text-white opacity-0 transition-opacity hover:bg-black group-hover:opacity-100"
+            >
+              <X className="h-3 w-3" />
+            </button>
+          ) : null}
+        </div>
       ))}
+    </div>
+  );
+}
+
+/** Trích file ID từ link Google Drive. */
+function driveFileId(url: string): string | null {
+  const m = url.match(/\/file\/d\/([^/?#]+)/) ?? url.match(/[?&]id=([^&]+)/);
+  return m ? m[1] : null;
+}
+
+/** Preview ảnh cho link Google Drive (Design/Mockup) — dùng thumbnail API của Drive. */
+function DriveLinkPreview({
+  value,
+  onChange,
+}: {
+  value: string;
+  onChange?: (v: string) => void;
+}) {
+  const urls = value
+    .split(/\r?\n/)
+    .map((s) => s.trim())
+    .filter(Boolean);
+  if (urls.length === 0) return null;
+
+  const remove = (url: string) => {
+    if (!onChange) return;
+    const next = urls.filter((u) => u !== url).join("\n");
+    onChange(next);
+  };
+
+  return (
+    <div className="mt-1.5 flex flex-wrap gap-1.5">
+      {urls.map((u, i) => {
+        const fileId = driveFileId(u);
+        const thumb = fileId
+          ? `https://drive.google.com/thumbnail?id=${fileId}&sz=w400`
+          : null;
+        return (
+          <div key={`${i}-${u}`} className="group relative h-16 w-16 shrink-0">
+            <a href={u} target="_blank" rel="noreferrer" className="block h-full w-full">
+              {thumb ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={thumb}
+                  alt=""
+                  className="h-16 w-16 rounded-lg border border-[#dee3e9] object-cover"
+                />
+              ) : (
+                <div className="flex h-16 w-16 items-center justify-center rounded-lg border border-[#dee3e9] bg-[#f1f4f7] text-[#5d6c7b]">
+                  <ExternalLink className="h-4 w-4" />
+                </div>
+              )}
+            </a>
+            {onChange ? (
+              <button
+                type="button"
+                onClick={() => remove(u)}
+                aria-label="Xoá link"
+                className="absolute -right-1.5 -top-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-[#0a1317] text-white opacity-0 transition-opacity hover:bg-black group-hover:opacity-100"
+              >
+                <X className="h-3 w-3" />
+              </button>
+            ) : null}
+          </div>
+        );
+      })}
     </div>
   );
 }
@@ -202,16 +286,23 @@ function FieldInput({
   // Ô khoá (Item ID/Order) giữ 1 dòng; còn lại nhiều dòng nếu là field text dài hoặc bật multiline.
   const asTextarea = !disabled && (multiline || TEXTAREA_FIELDS.has(field));
   if (asTextarea) {
+    const isDriveLink = field === "Design" || field === "Mockup";
+    const placeholder = field === "Customer Image"
+      ? "Mỗi dòng 1 link ảnh…"
+      : isDriveLink
+      ? "Link Google Drive…"
+      : undefined;
     return (
       <>
         <textarea
           value={value}
           onChange={(e) => onChange(e.target.value)}
           rows={field === "Order Note" || field === "Personalization" ? 3 : 2}
-          placeholder={field === "Customer Image" ? "Mỗi dòng 1 link ảnh…" : undefined}
+          placeholder={placeholder}
           className="w-full resize-y rounded-lg border-0 bg-[#f1f4f7] px-2.5 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#1876f2]"
         />
-        {field === "Customer Image" ? <ImagePreviews value={value} /> : null}
+        {field === "Customer Image" ? <ImagePreviews value={value} onChange={onChange} /> : null}
+        {isDriveLink ? <DriveLinkPreview value={value} onChange={onChange} /> : null}
       </>
     );
   }

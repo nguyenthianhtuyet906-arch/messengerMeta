@@ -24,7 +24,8 @@ export function AgentPerformance({ filters }: { filters: AnalyticsFilters }) {
             <thead>
               <tr className="border-b border-[#dee3e9] text-left text-xs font-bold uppercase tracking-wide text-[#5d6c7b]">
                 <th className="py-2 pr-3 font-bold">Nhân viên</th>
-                <th className="py-2 pl-2 text-right font-bold">Tin nhắn</th>
+                <th className="py-2 px-2 text-center font-bold">Conversations</th>
+                <th className="py-2 pl-2 text-center font-bold">Messages</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-[#f1f4f7]">
@@ -33,7 +34,10 @@ export function AgentPerformance({ filters }: { filters: AnalyticsFilters }) {
                   <td className="py-2.5 pr-3">
                     <span className="truncate font-bold text-[#0a1317]">{r.senderEmail}</span>
                   </td>
-                  <td className="py-2.5 pl-2 text-right font-bold text-[#0064e0]">
+                  <td className="py-2.5 px-2 text-center font-bold text-[#0064e0]">
+                    {r.conversationCount}
+                  </td>
+                  <td className="py-2.5 pl-2 text-center font-bold text-[#0064e0]">
                     {r.messageCount}
                   </td>
                 </tr>

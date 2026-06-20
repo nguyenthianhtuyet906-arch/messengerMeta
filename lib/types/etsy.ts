@@ -301,10 +301,11 @@ export interface ShopAnalyticsResponse {
   items: ShopMetricRow[];
 }
 
-/** 1 dòng nhân viên trong Agent Performance (tạm chỉ đếm tin nhắn). */
+/** 1 dòng nhân viên trong Agent Performance. */
 export interface AgentPerfRow {
   senderEmail: string;
   messageCount: number;
+  conversationCount: number;
 }
 
 /** Phản hồi GET /api/analytics/agent-performance. */

@@ -290,14 +290,32 @@ export async function getAgentPerformance(opts: AnalyticsOpts): Promise<AgentPer
   if (Object.keys(range).length > 0) match.created_at = range;
 
   const rows = await coll
-    .aggregate<{ _id: string; messageCount: number }>([
+    .aggregate<{ _id: string; messageCount: number; conversationCount: number }>([
       { $match: match },
-      { $group: { _id: "$sender_email", messageCount: { $sum: 1 } } },
+      {
+        $group: {
+          _id: "$sender_email",
+          messageCount: { $sum: 1 },
+          conversationIds: { $addToSet: "$conversation_id" },
+        },
+      },
+      {
+        $project: {
+          messageCount: 1,
+          conversationCount: { $size: "$conversationIds" },
+        },
+      },
       { $sort: { messageCount: -1, _id: 1 } },
     ])
     .toArray();
 
-  return { items: rows.map((r) => ({ senderEmail: r._id, messageCount: r.messageCount })) };
+  return {
+    items: rows.map((r) => ({
+      senderEmail: r._id,
+      messageCount: r.messageCount,
+      conversationCount: r.conversationCount,
+    })),
+  };
 }
 
 /** Tags Overview — tổng + breakdown theo tag (gồm bucket "No Tag"). */
