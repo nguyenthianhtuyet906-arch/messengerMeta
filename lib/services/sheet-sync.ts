@@ -201,3 +201,29 @@ export async function syncSheetIfStale(cfg: SheetConfigDoc): Promise<void> {
   if (!isStale(cfg)) return;
   await syncSheetNow(cfg._id);
 }
+
+/**
+ * Đồng bộ tất cả sheet đang bật mà chỉ mục đã cũ quá TTL (~2 phút). Dùng cho auto-sync
+ * định kỳ gọi từ client. AN TOÀN khi nhiều user gọi đồng thời: mỗi sheet chỉ thực sự sync
+ * 1 lần/2 phút nhờ kiểm tra `isStale` + cờ atomic `syncing` trong `syncSheetNow` (user thua
+ * race nhận modifiedCount=0 và bỏ qua). Lỗi 1 sheet không chặn các sheet còn lại.
+ */
+export async function syncAllStaleSheets(): Promise<{ synced: number; skipped: number }> {
+  const configs = await getSheetConfigsCollection();
+  const docs = await configs.find({ enabled: true }).toArray();
+  let synced = 0;
+  let skipped = 0;
+  for (const cfg of docs) {
+    if (!cfg._id || !isStale(cfg)) {
+      skipped++;
+      continue;
+    }
+    try {
+      await syncSheetNow(cfg._id);
+      synced++;
+    } catch {
+      // Lỗi (auth/quota) đã được ghi vào lastSyncError trong syncSheetNow — bỏ qua, sync sheet tiếp.
+    }
+  }
+  return { synced, skipped };
+}
