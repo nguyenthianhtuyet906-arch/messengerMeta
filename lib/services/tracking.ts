@@ -216,6 +216,7 @@ export async function confirmAdd(id: string, orderIds: string[]): Promise<Serial
   const coll = await getTrackingJobsCollection();
   await coll.updateOne({ _id: job._id }, { $set: { client_id: clientId } });
   job.client_id = clientId;
+  job.phase = "ADDING"; // saveOrders chỉ ghi DB; cập nhật in-memory để response trả đúng phase
   return serializeJob(job);
 }
 
