@@ -10,6 +10,7 @@ import {
   type KeyboardEvent,
 } from "react";
 import { useQueryClient } from "@tanstack/react-query";
+import { upload } from "@vercel/blob/client";
 import { Send, Info, StickyNote, Paperclip, X, Loader2, Sparkles, BookMarked, ArrowLeft } from "lucide-react";
 import { TemplatePicker } from "@/components/messenger/TemplatePicker";
 import { MessageList } from "@/components/messenger/MessageList";
@@ -18,6 +19,14 @@ import type { TabMeta } from "@/lib/store/tabs";
 import type { AIResponse } from "@/lib/types/etsy";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { initials } from "@/lib/format";
+
+// Khớp với ALLOWED ở app/api/uploads/route.ts.
+const ALLOWED_IMAGE_TYPES = new Set([
+  "image/jpeg",
+  "image/png",
+  "image/gif",
+  "image/webp",
+]);
 
 export function ConversationView({
   conversationId,
@@ -83,15 +92,23 @@ export function ConversationView({
     if (files.length === 0) return;
     setUploading(true);
     try {
-      const form = new FormData();
-      for (const f of files) form.append("files", f);
-      const res = await fetch("/api/uploads", { method: "POST", body: form });
-      const data = (await res.json()) as { urls?: string[]; error?: string };
-      if (!res.ok || !data.urls) {
-        alert(`Tải ảnh thất bại: ${data.error ?? res.status}`);
-        return;
+      const urls: string[] = [];
+      for (const f of files) {
+        if (!ALLOWED_IMAGE_TYPES.has(f.type)) {
+          alert(`Tải ảnh thất bại: loại file không hợp lệ (${f.type || "unknown"})`);
+          continue;
+        }
+        // Upload trực tiếp lên Vercel Blob (qua token từ /api/uploads),
+        // bỏ qua giới hạn 4.5MB của Serverless. upload() tự xử lý phản hồi
+        // và ném Error rõ ràng nếu thất bại (không còn lỗi parse JSON).
+        const blob = await upload(f.name || "image.png", f, {
+          access: "public",
+          handleUploadUrl: "/api/uploads",
+          contentType: f.type,
+        });
+        urls.push(blob.url);
       }
-      setAttachments((prev) => [...prev, ...data.urls!]);
+      if (urls.length > 0) setAttachments((prev) => [...prev, ...urls]);
     } catch (err) {
       alert(`Tải ảnh thất bại: ${(err as Error).message}`);
     } finally {
