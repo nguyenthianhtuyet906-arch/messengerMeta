@@ -1,6 +1,28 @@
-import { getConversationsCollection } from "@/lib/db/collections";
+import { getConversationsCollection, getStoresCollection } from "@/lib/db/collections";
 import { getOnlineShopNames } from "@/lib/services/ably-publish";
 import { asNumber, firstString } from "@/lib/services/etsy-utils";
+
+/**
+ * Lấy Etsy shop_id THẬT theo tên shop từ dora-master.stores
+ * (data.context.data.current_shop.shop_id). Trả null nếu không tìm thấy.
+ * Lưu ý: user_id (current_user.user_id) KHÁC shop_id — API Etsy cần shop_id.
+ */
+export async function resolveShopIdByName(shopName: string): Promise<number | null> {
+  const name = shopName.trim();
+  if (!name) return null;
+  try {
+    const coll = await getStoresCollection();
+    const doc = await coll.findOne({
+      type: "Etsy",
+      $or: [{ name }, { "data.context.data.current_shop.shop_name": name }],
+    } as Parameters<typeof coll.findOne>[0]);
+    const id = doc?.data?.context?.data?.current_shop?.shop_id;
+    return typeof id === "number" && id > 0 ? id : null;
+  } catch (e) {
+    console.warn("[resolveShopIdByName] failed:", (e as Error)?.message);
+    return null;
+  }
+}
 
 export interface ShopItem {
   userId: number;

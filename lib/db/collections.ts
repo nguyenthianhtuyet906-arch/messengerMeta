@@ -16,6 +16,23 @@ declare global {
 // (không phụ thuộc default "test" của connection string).
 const DB_NAME = process.env.MONGODB_DB || "meta_local";
 
+// DB chứa thông tin shop (dora) — nơi có Etsy shop_id thật.
+const STORES_DB_NAME = process.env.DORA_STORES_DB || "dora-master";
+
+/** Document shop trong dora-master.stores (chỉ khai báo trường dùng tới). */
+export interface StoreDoc {
+  type?: string;
+  name?: string;
+  data?: {
+    context?: {
+      data?: {
+        current_shop?: { shop_id?: number; shop_name?: string };
+        current_user?: { user_id?: number };
+      };
+    };
+  };
+}
+
 export async function getDb(): Promise<Db> {
   const client = await clientPromise;
   const db = client.db(DB_NAME);
@@ -70,4 +87,10 @@ export async function getMessageTemplatesCollection(): Promise<Collection<Messag
 export async function getTrackingJobsCollection(): Promise<Collection<TrackingJob>> {
   const db = await getDb();
   return db.collection<TrackingJob>("tracking_jobs");
+}
+
+/** Collection shop của dora (DB khác: dora-master). Dùng để lấy Etsy shop_id thật. */
+export async function getStoresCollection(): Promise<Collection<StoreDoc>> {
+  const client = await clientPromise;
+  return client.db(STORES_DB_NAME).collection<StoreDoc>("stores");
 }

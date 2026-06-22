@@ -12,6 +12,7 @@ import {
   type TrackingJobOrder,
   type TrackingOrderInput,
 } from "@/lib/types/tracking";
+import { resolveShopIdByName } from "@/lib/services/shop-read";
 
 /** Shop không có browser extension nào online → không thể GET/add tracking. */
 export class ShopOfflineError extends Error {
@@ -79,7 +80,9 @@ export async function createJob(params: {
   senderEmail: string;
 }): Promise<SerializedJob> {
   const shopName = params.shopName.trim();
-  const shopId = params.shopId ?? null;
+  // Etsy shop_id THẬT lấy từ dora-master.stores theo tên shop (KHÔNG dùng user_id).
+  // Nếu không tra được → null, extension sẽ tự getShopId() từ tab đang login.
+  const shopId = params.shopId ?? (await resolveShopIdByName(shopName));
 
   const orders: TrackingJobOrder[] = params.orders.map((o) => {
     const { carrier, other_carrier } = resolveCarrier(o.carrier);
