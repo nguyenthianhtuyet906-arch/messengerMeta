@@ -17,6 +17,14 @@ export function etsyText(raw: string): string {
     _decoderEl.innerHTML = s;
     s = _decoderEl.value;
   }
+  // Gom khoảng trắng thừa: chuẩn hoá xuống dòng, bỏ space cuối dòng và rút gọn
+  // chuỗi dòng trống liên tiếp (nhiều <br>) còn tối đa 1 dòng trống — tránh bong bóng
+  // tin nhắn bị cách quá nhiều dòng.
+  s = s
+    .replace(/\r\n?/g, "\n")
+    .replace(/[ \t]+\n/g, "\n")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
   return s;
 }
 
