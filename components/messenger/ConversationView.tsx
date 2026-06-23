@@ -150,30 +150,27 @@ export function ConversationView({
   }, [conversationId]);
 
   // Nội dung đang gõ trong ô chat = định hướng (input) cho AI; rỗng cũng được.
-  const fetchAI = async () => {
+  // Dùng fetchQuery thay vì fetch thủ công: React Query tự GỘP các request trùng
+  // key đang bay thành 1 (chống StrictMode/đa trigger gọi Gemini 2 lần), và cache
+  // kết quả nên mở lại cùng hội thoại không gọi lại. force=true (nút "Tạo lại")
+  // bỏ cache để sinh mới.
+  const fetchAI = async (opts?: { force?: boolean }) => {
+    const guide = draft.trim();
+    const queryKey = ["ai-suggestion", conversationId, guide] as const;
     setAiLoading(true);
     try {
-      const guide = draft.trim();
-
-      // Dùng cache prefetch nếu guidance rỗng và đã có sẵn.
-      if (!guide) {
-        const cached = qc.getQueryData<AIResponse>(["ai-suggestion", conversationId, ""]);
-        if (cached) {
-          setAiResult(cached);
-          setAiLoading(false);
-          return;
-        }
-      }
-
-      const qs = guide ? `?input=${encodeURIComponent(guide)}` : "";
-      const res = await fetch(`/api/conversations/${conversationId}/ai${qs}`);
-      const data = (await res.json()) as AIResponse & { error?: string };
-      if (!res.ok) {
-        alert(`Gợi ý AI thất bại: ${data.error ?? res.status}`);
-        return;
-      }
-      // Lưu vào cache để lần sau không cần fetch lại.
-      qc.setQueryData(["ai-suggestion", conversationId, guide], data);
+      if (opts?.force) qc.removeQueries({ queryKey });
+      const data = await qc.fetchQuery({
+        queryKey,
+        queryFn: async () => {
+          const qs = guide ? `?input=${encodeURIComponent(guide)}` : "";
+          const res = await fetch(`/api/conversations/${conversationId}/ai${qs}`);
+          const json = (await res.json()) as AIResponse & { error?: string };
+          if (!res.ok) throw new Error(json.error ?? String(res.status));
+          return json;
+        },
+        staleTime: Infinity,
+      });
       setAiResult(data);
     } catch (err) {
       alert(`Gợi ý AI thất bại: ${(err as Error).message}`);
@@ -274,7 +271,7 @@ export function ConversationView({
               </span>
             ) : null}
             <button
-              onClick={fetchAI}
+              onClick={() => fetchAI({ force: true })}
               disabled={aiLoading}
               className="ml-auto flex items-center gap-1 rounded-full px-2 py-0.5 font-medium text-info hover:bg-info-soft disabled:opacity-50"
             >

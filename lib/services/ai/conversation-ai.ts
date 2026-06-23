@@ -68,6 +68,7 @@ export async function createAIResponse(
       senderId: m.senderId,
       createDate: m.createDate,
       message: m.message,
+      imageCount: Array.isArray(m.images) ? m.images.length : 0,
     })),
   };
 
