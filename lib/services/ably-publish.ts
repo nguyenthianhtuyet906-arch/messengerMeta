@@ -23,6 +23,9 @@ export const CHAT_MESSAGE_EVENT = "chat-message";
 export const FETCH_SHIPMENTS_EVENT = "fetch-shipments";
 export const SEND_TRACKING_EVENT = "send-tracking";
 
+// Event yêu cầu extension GET lại ảnh khách upload ("Your Photo").
+export const FETCH_PERSONALIZATION_EVENT = "fetch-personalization";
+
 /**
  * Chọn 1 browser extension đang online trên channel của shop (presence) —
  * lấy client cuối để đảm bảo chỉ 1 client xử lý. Trả null nếu không có ai online.
@@ -117,6 +120,26 @@ export async function publishSendTracking(
   if (!targetClientId) return null;
 
   await channel.publish(SEND_TRACKING_EVENT, { ...data, clientId: targetClientId });
+  return targetClientId;
+}
+
+/**
+ * Yêu cầu extension GET lại ảnh khách upload cho các đơn của hội thoại (event "fetch-personalization").
+ * Extension fetch từ Etsy rồi POST về dora-backend (extension/personalization-files).
+ * Trả clientId được nhắm tới, hoặc null nếu shop không có browser online.
+ */
+export async function publishFetchPersonalization(
+  shopName: string,
+  data: { conversation_id: number; receipt_ids: number[] },
+): Promise<string | null> {
+  const rest = getRest();
+  if (!rest || !shopName) return null;
+  const channel = rest.channels.get(shopName);
+
+  const targetClientId = await pickTargetClient(channel);
+  if (!targetClientId) return null;
+
+  await channel.publish(FETCH_PERSONALIZATION_EVENT, { ...data, clientId: targetClientId });
   return targetClientId;
 }
 

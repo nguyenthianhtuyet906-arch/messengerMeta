@@ -201,6 +201,27 @@ export interface ConversationListResponse {
   nextCursor: string | null;
 }
 
+/** 1 ảnh khách upload ("Your Photo") cho 1 transaction (etsy personalization file). */
+export interface PersonalizationFile {
+  url: string;
+  thumbnailUrl: string;
+  filename: string;
+}
+
+/**
+ * Document collection `personalization_files` — 1 doc / 1 receipt (order).
+ * Mirror dora-backend/models/personalization_file.go. Lưu tách khỏi conversation
+ * để không bị shallow-merge của conversation sync ghi đè (GET 1 lần).
+ */
+export interface PersonalizationFileDoc {
+  _id?: ObjectId;
+  receipt_id: number;
+  shop_name?: string;
+  transactions: { transaction_id: number; files: { url: string; thumbnail_url: string; filename: string }[] }[];
+  fetched_at?: Date;
+  updated_at?: Date;
+}
+
 /** 1 dòng sản phẩm trong đơn (receipt_history[].transactions). */
 export interface ReceiptTransaction {
   transactionId: number;
@@ -208,6 +229,8 @@ export interface ReceiptTransaction {
   image: string;
   quantity: number;
   value: string;
+  /** Ảnh khách upload trực tiếp (enrich từ extension qua endpoint personalization-files). */
+  personalizationFiles: PersonalizationFile[];
 }
 
 /** 1 đơn hàng trong lịch sử mua của khách (etsy.buyer_info.receipt_history). */

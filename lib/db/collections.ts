@@ -1,6 +1,6 @@
 import type { Collection, Db } from "mongodb";
 import clientPromise from "@/lib/mongodb-client";
-import type { AutoReplyDoc, ConversationDoc, MessageDoc, MessageTemplateDoc } from "@/lib/types/etsy";
+import type { AutoReplyDoc, ConversationDoc, MessageDoc, MessageTemplateDoc, PersonalizationFileDoc } from "@/lib/types/etsy";
 import type { SheetConfigDoc, SheetRowDoc } from "@/lib/types/sheets";
 import type { OrderStatusDoc } from "@/lib/types/order-status";
 import type { TrackingJob } from "@/lib/types/tracking";
@@ -82,6 +82,11 @@ export async function getOrderStatusesCollection(): Promise<Collection<OrderStat
 export async function getMessageTemplatesCollection(): Promise<Collection<MessageTemplateDoc>> {
   const db = await getDb();
   return db.collection<MessageTemplateDoc>("message_templates");
+}
+
+export async function getPersonalizationFilesCollection(): Promise<Collection<PersonalizationFileDoc>> {
+  const db = await getDb();
+  return db.collection<PersonalizationFileDoc>("personalization_files");
 }
 
 export async function getTrackingJobsCollection(): Promise<Collection<TrackingJob>> {
