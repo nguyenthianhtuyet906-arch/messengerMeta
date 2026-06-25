@@ -1,11 +1,11 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useConversations } from "@/lib/hooks/useConversations";
 import { useBoardDispatch } from "@/lib/hooks/useBoardDispatch";
 import { BoardToolbar } from "@/components/board/BoardToolbar";
 import { BoardCell, type CellStatus } from "@/components/board/BoardCell";
-import type { ConversationFilters } from "@/lib/types/etsy";
+import type { ConversationFilters, ConversationListItem } from "@/lib/types/etsy";
 
 // Trần cứng số ô render để tránh treo trình duyệt dù chọn page size lớn.
 const HARD_CAP = 100;
@@ -48,10 +48,45 @@ export default function BoardPage() {
   const { items, hasNextPage, isFetchingNextPage, fetchNextPage, isLoading } =
     useConversations(filters);
 
+  // --- Giữ lại hội thoại đã hiển thị trong phiên lọc hiện tại ---
+  // Khi đang lọc "Chưa trả lời", sau khi shop trả lời thì server loại hội thoại
+  // khỏi kết quả và refetch khiến nó biến mất giữa chừng. Ta giữ lại (đúng vị
+  // trí cũ) để user còn kiểm tra; chỉ reset khi đổi bộ lọc hoặc reload trang.
+  const filtersKey = JSON.stringify(filters);
+  const retainMapRef = useRef<Map<number, ConversationListItem>>(new Map());
+  const [retainOrder, setRetainOrder] = useState<number[]>([]);
+
+  useEffect(() => {
+    // Đổi bộ lọc → bắt đầu phiên giữ mới.
+    retainMapRef.current = new Map();
+    setRetainOrder([]);
+  }, [filtersKey]);
+
+  useEffect(() => {
+    const map = retainMapRef.current;
+    const added: number[] = [];
+    for (const c of items) {
+      if (!map.has(c.conversationId)) added.push(c.conversationId);
+      map.set(c.conversationId, c); // luôn cập nhật bản mới nhất từ server
+    }
+    if (added.length) setRetainOrder((prev) => [...prev, ...added]);
+  }, [items]);
+
+  // Hợp nhất theo thứ tự đã thấy: item nào server đã loại (đã trả lời) vẫn còn
+  // trong map nên tiếp tục hiển thị tại đúng vị trí.
+  const retainedItems = useMemo(
+    () =>
+      retainOrder
+        .map((id) => retainMapRef.current.get(id))
+        .filter((c): c is ConversationListItem => c != null),
+    // items nằm trong deps để đọc lại bản mới nhất sau mỗi lần refetch.
+    [retainOrder, items],
+  );
+
   // Lọc client: số tin nhắn + thời gian chờ.
   const filtered = useMemo(() => {
     const now = Date.now();
-    return items.filter((c) => {
+    return retainedItems.filter((c) => {
       if (maxMessages != null && !(c.messageCount < maxMessages)) return false;
       if (waitingHours != null) {
         const ageH = (now - c.lastMessageDate * 1000) / 3_600_000;
@@ -59,7 +94,7 @@ export default function BoardPage() {
       }
       return true;
     });
-  }, [items, maxMessages, waitingHours]);
+  }, [retainedItems, maxMessages, waitingHours]);
 
   const limit = Math.min(pageSize, HARD_CAP);
   const cells = filtered.slice(0, limit);
