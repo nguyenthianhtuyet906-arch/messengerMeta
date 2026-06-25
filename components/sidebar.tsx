@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation"
 import { useEffect, useState } from "react"
 import {
   LayoutDashboard,
+  LayoutGrid,
   LogOut,
   Menu,
   MessageCircle,
@@ -42,6 +43,7 @@ export function MobileMenuButton({ className }: { className?: string }) {
 const navItems = [
   { href: "/", label: "Dashboard", icon: LayoutDashboard },
   { href: "/messages", label: "Messenger", icon: MessageCircle },
+  { href: "/board", label: "Bảng xử lý", icon: LayoutGrid },
   { href: "/orders", label: "Orders", icon: ShoppingBag },
   { href: "/tracking", label: "Tracking", icon: Truck },
 ]

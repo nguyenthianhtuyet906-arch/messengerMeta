@@ -10,10 +10,12 @@ export function TagFilter({
   selected,
   onChange,
   shopIds = [],
+  label = "Thẻ",
 }: {
   selected: string[];
   onChange: (tags: string[]) => void;
   shopIds?: number[];
+  label?: string;
 }) {
   const { stats, isLoading } = useTagStats(shopIds);
   const [open, setOpen] = useState(false);
@@ -56,7 +58,7 @@ export function TagFilter({
         )}
       >
         <Tag className="h-3.5 w-3.5" />
-        Thẻ
+        {label}
         {selected.length > 0 && (
           <span className="rounded-full bg-primary px-1.5 text-[10px] font-bold text-white">
             {selected.length}

@@ -1,11 +1,13 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import Link from "next/link";
 import {
   ArrowDownWideNarrow,
   ArrowUpNarrowWide,
   Check,
   ExternalLink,
+  LayoutGrid,
   MessageCircle,
   RotateCcw,
   Users,
@@ -142,9 +144,19 @@ export default function OpenMultiplePage() {
           Đóng tab
         </button>
 
-        <h1 className="text-2xl font-medium tracking-tight text-foreground">
-          Mở nhiều hội thoại
-        </h1>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <h1 className="text-2xl font-medium tracking-tight text-foreground">
+            Mở nhiều hội thoại
+          </h1>
+          <Link
+            href="/board"
+            target="_blank"
+            className="inline-flex items-center gap-2 rounded-full border border-border bg-card px-4 py-2 text-sm font-bold text-foreground transition-colors hover:bg-secondary"
+          >
+            <LayoutGrid className="h-4 w-4 text-primary" />
+            Mở Bảng xử lý
+          </Link>
+        </div>
         <p className="mt-1 text-sm text-muted-foreground">
           Tổng <span className="font-bold text-foreground">{sorted.length}</span> hội thoại
           {people > 1 ? (

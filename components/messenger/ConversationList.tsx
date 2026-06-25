@@ -2,13 +2,14 @@
 
 import { memo, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
-import { Search, MessageSquareReply, ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react";
+import { Search, MessageSquareReply, ArrowUpDown, ArrowUp, ArrowDown, LayoutGrid } from "lucide-react";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { useConversations } from "@/lib/hooks/useConversations";
 import { useShops } from "@/lib/hooks/useShops";
 import { ShopFilter } from "@/components/messenger/ShopFilter";
 import { TagFilter } from "@/components/messenger/TagFilter";
 import { SheetStatusFilter } from "@/components/messenger/SheetStatusFilter";
+import { FilterChip } from "@/components/messenger/FilterChip";
 import { useTabs } from "@/lib/store/tabs";
 import type { ConversationFilters, ConversationListItem } from "@/lib/types/etsy";
 import { tagClassName, tagLabel } from "@/lib/tags";
@@ -86,30 +87,6 @@ const Row = memo(function Row({
           </div>
         )}
       </div>
-    </button>
-  );
-});
-
-const FilterChip = memo(function FilterChip({
-  label,
-  active,
-  onClick,
-}: {
-  label: string;
-  active: boolean;
-  onClick: () => void;
-}) {
-  return (
-    <button
-      onClick={onClick}
-      className={cn(
-        "w-full rounded-full border px-3 py-1.5 text-center text-xs font-medium transition-colors",
-        active
-          ? "border-primary bg-accent text-primary"
-          : "border-border text-muted-foreground hover:bg-secondary",
-      )}
-    >
-      {label}
     </button>
   );
 });
@@ -224,6 +201,14 @@ export function ConversationList({ className }: { className?: string }) {
                 <ArrowUp className="h-4 w-4" />
               )}
             </button>
+            <Link
+              href="/board"
+              title="Bảng xử lý hàng loạt"
+              aria-label="Bảng xử lý hàng loạt"
+              className="flex h-9 w-9 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-secondary"
+            >
+              <LayoutGrid className="h-5 w-5" />
+            </Link>
             <Link
               href="/auto-replies"
               title="Tự động trả lời"

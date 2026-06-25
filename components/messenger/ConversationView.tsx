@@ -3,6 +3,7 @@
 import {
   useEffect,
   useLayoutEffect,
+  useMemo,
   useRef,
   useState,
   type ChangeEvent,
@@ -15,6 +16,8 @@ import { Send, Info, StickyNote, Paperclip, X, Loader2, Sparkles, BookMarked, Ar
 import { TemplatePicker } from "@/components/messenger/TemplatePicker";
 import { MessageList } from "@/components/messenger/MessageList";
 import { useSendMessage } from "@/lib/hooks/useSendMessage";
+import { useMessages } from "@/lib/hooks/useMessages";
+import { useShops } from "@/lib/hooks/useShops";
 import type { TabMeta } from "@/lib/store/tabs";
 import type { AIResponse } from "@/lib/types/etsy";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -36,6 +39,10 @@ export function ConversationView({
   onToggleInfo,
   notesOpen = false,
   onToggleNotes,
+  draft: controlledDraft,
+  onDraftChange,
+  autoFetchAI = true,
+  aiTrigger = 0,
 }: {
   conversationId: number;
   meta?: TabMeta;
@@ -44,8 +51,17 @@ export function ConversationView({
   onToggleInfo?: () => void;
   notesOpen?: boolean;
   onToggleNotes?: () => void;
+  /** Khi truyền → draft do bên ngoài điều khiển (cho Bảng xử lý: điền mẫu / gửi hàng loạt). */
+  draft?: string;
+  onDraftChange?: (v: string) => void;
+  /** Tự gọi gợi ý AI khi mở (mặc định bật). Bảng xử lý tắt để không bắn Gemini hàng loạt. */
+  autoFetchAI?: boolean;
+  /** Tăng giá trị này để kích hoạt gợi ý AI từ bên ngoài (nút "Tạo AI tất cả"). */
+  aiTrigger?: number;
 }) {
-  const [draft, setDraft] = useState("");
+  const [internalDraft, setInternalDraft] = useState("");
+  const draft = controlledDraft ?? internalDraft;
+  const setDraft = onDraftChange ?? setInternalDraft;
   const [attachments, setAttachments] = useState<string[]>([]);
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -53,6 +69,14 @@ export function ConversationView({
   const { pending, send } = useSendMessage(conversationId);
   const qc = useQueryClient();
   const name = meta?.name || `#${conversationId}`;
+
+  // Tên shop: lấy shopUserId từ messages (cache dùng chung với MessageList) rồi map qua useShops.
+  const { shopUserId } = useMessages(conversationId);
+  const { data: shops } = useShops();
+  const shopName = useMemo(
+    () => shops?.find((s) => s.userId === shopUserId)?.shopName ?? "",
+    [shops, shopUserId],
+  );
 
   // Tự cao theo nội dung: thu về 0 để đo đúng, cap ở MAX, chỉ bật cuộn khi tràn.
   useLayoutEffect(() => {
@@ -143,11 +167,20 @@ export function ConversationView({
   const [aiLoading, setAiLoading] = useState(false);
   const [aiResult, setAiResult] = useState<AIResponse | null>(null);
 
-  // Tự động fetch gợi ý AI khi mở conversation.
+  // Tự động fetch gợi ý AI khi mở conversation (tắt được cho Bảng xử lý).
   useEffect(() => {
-    void fetchAI();
+    if (autoFetchAI) void fetchAI();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [conversationId]);
+  }, [conversationId, autoFetchAI]);
+
+  // Kích hoạt gợi ý AI từ bên ngoài (nút "Tạo AI tất cả" của Bảng xử lý).
+  useEffect(() => {
+    if (aiTrigger > 0) {
+      setAiOpen(true);
+      void fetchAI();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [aiTrigger]);
 
   // Nội dung đang gõ trong ô chat = định hướng (input) cho AI; rỗng cũng được.
   // Dùng fetchQuery thay vì fetch thủ công: React Query tự GỘP các request trùng
@@ -215,7 +248,12 @@ export function ConversationView({
             {initials(name)}
           </AvatarFallback>
         </Avatar>
-        <h2 className="font-bold leading-tight text-foreground">{name}</h2>
+        <h2 className="min-w-0 truncate font-bold leading-tight text-foreground">
+          {name}
+          {shopName && (
+            <span className="font-normal text-muted-foreground"> · {shopName}</span>
+          )}
+        </h2>
         <div className="ml-auto flex shrink-0 items-center gap-1">
           {onToggleNotes ? (
             <button
