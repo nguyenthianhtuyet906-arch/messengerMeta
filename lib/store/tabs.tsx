@@ -23,6 +23,8 @@ interface TabsState {
   isHydrated: boolean;
   openTab: (id: number, meta?: TabMeta) => void;
   openMany: (entries: { id: number; meta?: TabMeta }[]) => void;
+  /** Cập nhật tên/avatar của 1 tab (vd: mở từ deep-link chưa có meta → điền sau khi fetch). */
+  updateMeta: (id: number, meta: TabMeta) => void;
   closeTab: (id: number) => void;
   closeAll: () => void;
   setActive: (id: number) => void;
@@ -121,6 +123,10 @@ export function TabsProvider({ children }: { children: React.ReactNode }) {
     });
   }, []);
 
+  const updateMeta = useCallback((id: number, m: TabMeta) => {
+    setMeta((prev) => ({ ...prev, [id]: m }));
+  }, []);
+
   const closeTab = useCallback((id: number) => {
     setOpenTabs((prev) => {
       const idx = prev.indexOf(id);
@@ -165,6 +171,7 @@ export function TabsProvider({ children }: { children: React.ReactNode }) {
       isHydrated,
       openTab,
       openMany,
+      updateMeta,
       closeTab,
       closeAll,
       setActive,
@@ -178,6 +185,7 @@ export function TabsProvider({ children }: { children: React.ReactNode }) {
       isHydrated,
       openTab,
       openMany,
+      updateMeta,
       closeTab,
       closeAll,
       setActive,

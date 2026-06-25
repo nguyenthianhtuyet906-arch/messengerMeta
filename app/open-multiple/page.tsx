@@ -59,15 +59,20 @@ export default function OpenMultiplePage() {
     return () => window.removeEventListener("storage", onStorage);
   }, []);
 
-  // Sắp xếp theo id cố định để mọi máy cắt ra cùng các phần (không trùng/sót),
-  // rồi lấy đúng phần của mình. people=1 → giữ nguyên toàn bộ danh sách.
-  // LƯU Ý: việc CHIA luôn theo id tăng dần (canonical) để đảm bảo mọi máy ra cùng
-  // các phần; `sort` chỉ đổi thứ tự HIỂN THỊ/MỞ, không ảnh hưởng cách chia.
+  // Sắp xếp theo THỜI GIAN tin nhắn cuối (cũ → mới) làm thứ tự cố định để mọi máy
+  // cắt ra cùng các phần (không trùng/sót), rồi lấy đúng phần của mình.
+  // Tie-break bằng id để vẫn xác định (deterministic) khi ts bằng nhau/thiếu.
+  // people=1 → giữ nguyên toàn bộ danh sách.
+  // LƯU Ý: việc CHIA luôn theo canonical này để đảm bảo mọi máy ra cùng các phần;
+  // `sort` chỉ đổi thứ tự HIỂN THỊ/MỞ, không ảnh hưởng cách chia.
   const sorted = useMemo(
-    () => [...allEntries].sort((a, b) => a.id - b.id),
+    () =>
+      [...allEntries].sort(
+        (a, b) => (a.ts ?? 0) - (b.ts ?? 0) || a.id - b.id,
+      ),
     [allEntries],
   );
-  // Áp thứ tự hiển thị lên 1 phần (canonical là id tăng dần nên "newest" = đảo lại).
+  // Áp thứ tự hiển thị lên 1 phần (canonical là cũ → mới nên "newest" = đảo lại).
   const display = useCallback(
     (list: OpenEntry[]) => (sort === "newest" ? [...list].reverse() : list),
     [sort],

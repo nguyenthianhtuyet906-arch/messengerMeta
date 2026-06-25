@@ -16,6 +16,8 @@ export interface OpenEntry {
   name?: string;
   avatar?: string;
   shop?: string;
+  /** Thời gian tin nhắn cuối (ms). Dùng để sort theo thời gian, không theo id. */
+  ts?: number;
 }
 
 const STAGE_KEY = "messenger.openMultiple.v1";

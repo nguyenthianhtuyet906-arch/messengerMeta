@@ -46,6 +46,10 @@ export function MessageList({
   const fetchingOlderRef = useRef(false);
   const didInitialScrollRef = useRef(false);
   const atBottomRef = useRef(true);
+  const pinRafRef = useRef(0);
+  // True khi đã ghim xong xuống đáy lần đầu. Chặn việc tải tin CŨ kích hoạt sớm
+  // (lúc mới mở scroll còn ở top) làm cướp scroll, kẹt ở giữa.
+  const initialPinnedRef = useRef(false);
 
   const virtualizer = useVirtualizer({
     count: items.length,
@@ -67,11 +71,43 @@ export function MessageList({
     [virtualizer],
   );
 
-  // Reset khi đổi conversation.
+  // Cuộn xuống tin MỚI NHẤT một cách CHẮC CHẮN. Virtualizer đo chiều cao động sau
+  // khi render nên scrollToIndex gọi một lần thường rơi chưa tới đáy (người dùng phải
+  // tự kéo xuống — phiền). Lặp ghim đáy qua nhiều frame cho tới khi chiều cao tổng
+  // ổn định (đã đo xong các bong bóng/ảnh) rồi mới dừng.
+  const pinToBottom = useCallback(() => {
+    cancelAnimationFrame(pinRafRef.current);
+    let lastH = -1;
+    let stable = 0;
+    let tries = 0;
+    const step = () => {
+      const el = parentRef.current;
+      if (!el) return;
+      el.scrollTop = el.scrollHeight;
+      atBottomRef.current = true;
+      if (el.scrollHeight === lastH) stable += 1;
+      else {
+        stable = 0;
+        lastH = el.scrollHeight;
+      }
+      // Dừng khi đáy không đổi 3 frame liên tiếp, hoặc chạm trần an toàn (~40 frame).
+      if (stable < 3 && tries < 40) {
+        tries += 1;
+        pinRafRef.current = requestAnimationFrame(step);
+      } else {
+        initialPinnedRef.current = true;
+      }
+    };
+    pinRafRef.current = requestAnimationFrame(step);
+  }, []);
+
+  // Reset khi đổi conversation; huỷ vòng ghim đáy đang chạy.
   useEffect(() => {
     didInitialScrollRef.current = false;
+    initialPinnedRef.current = false;
     prevLenRef.current = 0;
     fetchingOlderRef.current = false;
+    return () => cancelAnimationFrame(pinRafRef.current);
   }, [conversationId]);
 
   // Giữ vị trí scroll khi prepend tin cũ / cuộn đáy khi tin mới.
@@ -83,20 +119,26 @@ export function MessageList({
     }
 
     if (!didInitialScrollRef.current && items.length > 0) {
-      virtualizer.scrollToIndex(items.length - 1, { align: "end" });
+      // Lần đầu mở hội thoại → ghim chắc xuống tin mới nhất.
       didInitialScrollRef.current = true;
+      pinToBottom();
     } else if (fetchingOlderRef.current) {
+      // Vừa nạp tin CŨ hơn (prepend) → giữ nguyên vị trí đang xem.
       virtualizer.scrollToIndex(added, { align: "start" });
       fetchingOlderRef.current = false;
-    } else {
-      virtualizer.scrollToIndex(items.length - 1, { align: "end" });
+    } else if (atBottomRef.current) {
+      // Có tin mới ở cuối và người dùng đang ở đáy → bám theo tin mới nhất.
+      pinToBottom();
     }
     prevLenRef.current = items.length;
-  }, [items.length, virtualizer]);
+  }, [items.length, virtualizer, pinToBottom]);
 
   // Cuộn lên đầu → load tin cũ hơn.
   const virtualItems = virtualizer.getVirtualItems();
   useEffect(() => {
+    // Chỉ tải tin cũ SAU khi đã ghim xong xuống đáy — nếu không, lúc mới mở scroll
+    // còn ở top sẽ kích hoạt tải tin cũ và làm scroll kẹt ở giữa.
+    if (!initialPinnedRef.current) return;
     const first = virtualItems[0];
     if (!first) return;
     if (first.index <= 2 && hasNextPage && !isFetchingNextPage) {

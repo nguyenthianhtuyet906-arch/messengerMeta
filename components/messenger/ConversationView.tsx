@@ -43,6 +43,7 @@ export function ConversationView({
   onDraftChange,
   autoFetchAI = true,
   aiTrigger = 0,
+  onResolveMeta,
 }: {
   conversationId: number;
   meta?: TabMeta;
@@ -58,6 +59,8 @@ export function ConversationView({
   autoFetchAI?: boolean;
   /** Tăng giá trị này để kích hoạt gợi ý AI từ bên ngoài (nút "Tạo AI tất cả"). */
   aiTrigger?: number;
+  /** Báo tên/avatar lấy được từ messages (khi mở deep-link chưa có meta) để cập nhật tab. */
+  onResolveMeta?: (meta: TabMeta) => void;
 }) {
   const [internalDraft, setInternalDraft] = useState("");
   const draft = controlledDraft ?? internalDraft;
@@ -68,10 +71,19 @@ export function ConversationView({
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const { pending, send } = useSendMessage(conversationId);
   const qc = useQueryClient();
-  const name = meta?.name || `#${conversationId}`;
 
-  // Tên shop: lấy shopUserId từ messages (cache dùng chung với MessageList) rồi map qua useShops.
-  const { shopUserId } = useMessages(conversationId);
+  // Tên shop + tên/avatar khách: lấy từ messages (cache dùng chung với MessageList).
+  const { shopUserId, name: fetchedName, avatar: fetchedAvatar } = useMessages(conversationId);
+  // Mở từ deep-link thì meta rỗng → dùng tên fetch được làm fallback (tránh hiện "#id").
+  const name = meta?.name || fetchedName || `#${conversationId}`;
+  const avatarUrl = meta?.avatar || fetchedAvatar || "";
+
+  // Khi đã fetch được tên mà tab chưa có meta → báo ra ngoài để cập nhật nhãn tab.
+  useEffect(() => {
+    if (fetchedName && !meta?.name && onResolveMeta) {
+      onResolveMeta({ name: fetchedName, avatar: meta?.avatar || fetchedAvatar || "" });
+    }
+  }, [fetchedName, fetchedAvatar, meta?.name, meta?.avatar, onResolveMeta]);
   const { data: shops } = useShops();
   const shopName = useMemo(
     () => shops?.find((s) => s.userId === shopUserId)?.shopName ?? "",
@@ -243,7 +255,7 @@ export function ConversationView({
           </button>
         ) : null}
         <Avatar className="h-8 w-8">
-          {meta?.avatar ? <AvatarImage src={meta.avatar} alt={name} /> : null}
+          {avatarUrl ? <AvatarImage src={avatarUrl} alt={name} /> : null}
           <AvatarFallback className="bg-accent text-xs font-bold text-primary">
             {initials(name)}
           </AvatarFallback>

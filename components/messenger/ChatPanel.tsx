@@ -9,7 +9,7 @@ import { SlideInPanel } from "@/components/messenger/SlideInPanel";
 import { useTabs } from "@/lib/store/tabs";
 
 export function ChatPanel() {
-  const { activeTabId, meta, clearActive } = useTabs();
+  const { activeTabId, meta, clearActive, updateMeta } = useTabs();
   const [infoOpen, setInfoOpen] = useState(false);
   const [notesOpen, setNotesOpen] = useState(false);
 
@@ -36,6 +36,7 @@ export function ChatPanel() {
         key={activeTabId}
         conversationId={activeTabId}
         meta={meta[activeTabId]}
+        onResolveMeta={(m) => updateMeta(activeTabId, m)}
         onBack={clearActive}
         infoOpen={infoOpen}
         onToggleInfo={() => setInfoOpen((v) => !v)}

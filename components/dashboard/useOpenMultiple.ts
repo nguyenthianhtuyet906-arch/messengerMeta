@@ -22,6 +22,7 @@ export function useOpenMultiple() {
       name: c.name,
       avatar: c.avatar,
       shop: c.shop,
+      ts: c.lastMessageDate,
     }));
     stageOpenMultiple(entries);
     if (typeof window !== "undefined") {
