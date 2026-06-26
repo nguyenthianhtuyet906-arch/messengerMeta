@@ -13,7 +13,11 @@ export function TagsOverview({ filters }: { filters: AnalyticsFilters }) {
   const openMultiple = useOpenMultiple();
 
   const totals = data?.totals ?? { total: 0, unread: 0, completed: 0 };
-  const tags = data?.tags ?? [];
+  // Sắp xếp tag theo số tin chưa trả lời (lớn → nhỏ).
+  const tags = useMemo(
+    () => [...(data?.tags ?? [])].sort((a, b) => b.unread - a.unread),
+    [data?.tags],
+  );
 
   const allUnread = useMemo<UnreadConvItem[]>(() => {
     // Gộp theo conversationId để không trùng khi 1 hội thoại có nhiều tag.

@@ -12,7 +12,11 @@ export function MessageOverview({ filters }: { filters: AnalyticsFilters }) {
   const openMultiple = useOpenMultiple();
 
   const totals = data?.totals ?? { total: 0, unread: 0, completed: 0 };
-  const shops = data?.shopBreakdown ?? [];
+  // Sắp xếp shop theo số tin chưa trả lời (lớn → nhỏ).
+  const shops = useMemo(
+    () => [...(data?.shopBreakdown ?? [])].sort((a, b) => b.unread - a.unread),
+    [data?.shopBreakdown],
+  );
 
   // Gộp toàn bộ hội thoại chưa trả lời (cho nút "Mở tất cả tin chưa đọc"),
   // đính kèm tên shop để bảng "mở nhiều" hiển thị được.
