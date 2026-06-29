@@ -153,7 +153,10 @@ export async function getConversationMessages(opts: {
       ])
     : "";
 
-  const filter: Record<string, unknown> = { "etsy.conversation_id": opts.conversationId };
+  const filter: Record<string, unknown> = {
+    "etsy.conversation_id": opts.conversationId,
+    status: { $ne: "FAILED" },
+  };
   if (typeof opts.before === "number") {
     filter["etsy.message_order"] = { $lt: opts.before };
   }
