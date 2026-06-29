@@ -12,8 +12,8 @@ const geistMono = Geist_Mono({
 })
 
 export const metadata: Metadata = {
-  title: 'EtsyChat — Nhắn tin trực tuyến',
-  description: 'Ứng dụng chat đơn giản, nhanh và đẹp.',
+  title: 'EtsyChat',
+  description: 'Ứng dụng chat trực tuyến',
   generator: 'v0.app',
 }
 
