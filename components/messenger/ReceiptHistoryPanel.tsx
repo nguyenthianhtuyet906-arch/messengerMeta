@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { X, Package, ChevronDown } from "lucide-react";
+import { X, Package, ChevronDown, RefreshCw } from "lucide-react";
+import { useQueryClient } from "@tanstack/react-query";
 import { useConversationDetail } from "@/lib/hooks/useConversationDetail";
 import { TagEditor } from "@/components/messenger/TagEditor";
 import { SheetReceiptEditor } from "@/components/messenger/SheetItemEditor";
@@ -73,6 +74,29 @@ function ReceiptCard({ r }: { r: ReceiptHistoryItem }) {
                 <p className="cursor-text select-text break-all text-xs text-muted-foreground">
                   #{r.receiptId}-{t.transactionId}
                 </p>
+                {t.personalizationFiles.length > 0 ? (
+                  <div className="mt-1">
+                    <p className="text-[11px] text-muted-foreground">Your Photo:</p>
+                    <div className="mt-0.5 flex flex-wrap gap-1">
+                      {t.personalizationFiles.map((f, i) => (
+                        <a
+                          key={`${t.transactionId}-perso-${i}`}
+                          href={f.url || f.thumbnailUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          onClick={(e) => e.stopPropagation()}
+                          title={f.filename || "Customer photo"}
+                        >
+                          <img
+                            src={f.thumbnailUrl || f.url}
+                            alt={f.filename || "Customer photo"}
+                            className="h-12 w-12 rounded-lg border border-border object-cover"
+                          />
+                        </a>
+                      ))}
+                    </div>
+                  </div>
+                ) : null}
               </div>
             </div>
           ))}
@@ -93,19 +117,56 @@ export function ReceiptHistoryPanel({
   const receipts = data?.receiptHistory ?? [];
   const storeName = data?.storeName ?? "";
 
+  const queryClient = useQueryClient();
+  const [refreshing, setRefreshing] = useState(false);
+
+  // Yêu cầu extension GET lại ảnh khách upload ("Your Photo") cho toàn hội thoại.
+  const handleRefreshPhotos = async () => {
+    if (refreshing) return;
+    setRefreshing(true);
+    try {
+      const res = await fetch(`/api/conversations/${conversationId}/personalization/refresh`, {
+        method: "POST",
+      });
+      if (!res.ok) {
+        const body = (await res.json().catch(() => ({}))) as { error?: string };
+        alert(body.error || "Không gửi được yêu cầu làm mới ảnh (extension có thể chưa mở).");
+        return;
+      }
+      // Extension fetch bất đồng bộ qua Ably → đợi rồi refetch để hiện ảnh mới.
+      await new Promise((r) => setTimeout(r, 3000));
+      await queryClient.invalidateQueries({ queryKey: ["conversation-detail", conversationId] });
+    } catch (e) {
+      console.error("[ReceiptHistoryPanel] refresh photos failed", e);
+    } finally {
+      setRefreshing(false);
+    }
+  };
+
   return (
     <aside className="flex h-full w-full flex-col border-l border-border bg-card">
       <header className="flex shrink-0 items-center justify-between border-b border-border px-4 py-3">
         <h3 className="font-bold text-foreground">Lịch sử đơn hàng</h3>
-        {onClose ? (
+        <div className="flex items-center gap-1">
           <button
-            onClick={onClose}
-            className="flex h-8 w-8 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-secondary"
-            aria-label="Đóng"
+            onClick={handleRefreshPhotos}
+            disabled={refreshing}
+            title="GET lại ảnh khách upload (Your Photo)"
+            className="flex h-8 w-8 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-secondary disabled:opacity-50"
+            aria-label="Làm mới ảnh khách upload"
           >
-            <X className="h-4 w-4" />
+            <RefreshCw className={"h-4 w-4 " + (refreshing ? "animate-spin" : "")} />
           </button>
-        ) : null}
+          {onClose ? (
+            <button
+              onClick={onClose}
+              className="flex h-8 w-8 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-secondary"
+              aria-label="Đóng"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          ) : null}
+        </div>
       </header>
 
       <div className="flex-1 overflow-y-auto p-3">

@@ -2,17 +2,20 @@
 
 import { memo, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
-import { Search, MessageSquareReply, ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react";
+import { Search, MessageSquareReply, ArrowUpDown, ArrowUp, ArrowDown, LayoutGrid } from "lucide-react";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { useConversations } from "@/lib/hooks/useConversations";
+import { useShops } from "@/lib/hooks/useShops";
 import { ShopFilter } from "@/components/messenger/ShopFilter";
 import { TagFilter } from "@/components/messenger/TagFilter";
 import { SheetStatusFilter } from "@/components/messenger/SheetStatusFilter";
+import { FilterChip } from "@/components/messenger/FilterChip";
 import { useTabs } from "@/lib/store/tabs";
 import type { ConversationFilters, ConversationListItem } from "@/lib/types/etsy";
 import { tagClassName, tagLabel } from "@/lib/tags";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
+import { MobileMenuButton } from "@/components/sidebar";
 import { initials, timeAgo } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
@@ -20,10 +23,12 @@ const ROW_HEIGHT = 76;
 
 const Row = memo(function Row({
   c,
+  shopName,
   active,
   onClick,
 }: {
   c: ConversationListItem;
+  shopName?: string;
   active: boolean;
   onClick: () => void;
 }) {
@@ -45,6 +50,9 @@ const Row = memo(function Row({
         <div className="flex items-baseline justify-between gap-2">
           <span className="truncate font-bold text-sm text-foreground">
             {c.name || `#${c.conversationId}`}
+            {shopName && (
+              <span className="font-normal text-muted-foreground"> · {shopName}</span>
+            )}
           </span>
           <span className="shrink-0 text-xs text-muted-foreground">
             {timeAgo(c.lastMessageDate)}
@@ -83,31 +91,7 @@ const Row = memo(function Row({
   );
 });
 
-const FilterChip = memo(function FilterChip({
-  label,
-  active,
-  onClick,
-}: {
-  label: string;
-  active: boolean;
-  onClick: () => void;
-}) {
-  return (
-    <button
-      onClick={onClick}
-      className={cn(
-        "w-full rounded-full border px-3 py-1.5 text-center text-xs font-medium transition-colors",
-        active
-          ? "border-primary bg-accent text-primary"
-          : "border-border text-muted-foreground hover:bg-secondary",
-      )}
-    >
-      {label}
-    </button>
-  );
-});
-
-export function ConversationList() {
+export function ConversationList({ className }: { className?: string }) {
   const [searchInput, setSearchInput] = useState("");
   const [search, setSearch] = useState("");
   const [orderHelp, setOrderHelp] = useState(false);
@@ -139,6 +123,14 @@ export function ConversationList() {
 
   const { items, data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading } =
     useConversations(filters);
+
+  // Map shopUserId → tên shop để nối vào tên khách trong danh sách.
+  const { data: shops } = useShops();
+  const shopNameById = useMemo(() => {
+    const m = new Map<number, string>();
+    for (const s of shops ?? []) m.set(s.userId, s.shopName);
+    return m;
+  }, [shops]);
 
   // Mở nhanh N hội thoại đầu danh sách (tự load đủ trang trước khi mở).
   const BULK_CAP = 100; // trần an toàn cho "Tất cả"
@@ -185,10 +177,13 @@ export function ConversationList() {
   }, [virtualItems, items.length, hasNextPage, isFetchingNextPage, fetchNextPage]);
 
   return (
-    <div className="flex w-full max-w-sm flex-col border-r border-border bg-card md:w-80 lg:w-96">
+    <div className={cn("w-full flex-col border-r border-border bg-card md:w-80 lg:w-96", className)}>
       <div className="px-5 pt-6 pb-3">
         <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-medium tracking-tight text-foreground">Đoạn chat</h1>
+          <div className="flex items-center gap-2">
+            <MobileMenuButton className="md:hidden" />
+            <h1 className="text-2xl font-medium tracking-tight text-foreground">Đoạn chat</h1>
+          </div>
           <div className="flex items-center gap-1">
             <button
               onClick={() => setSort((v) => (v === "desc" ? "asc" : "desc"))}
@@ -206,6 +201,14 @@ export function ConversationList() {
                 <ArrowUp className="h-4 w-4" />
               )}
             </button>
+            <Link
+              href="/board"
+              title="Bảng xử lý hàng loạt"
+              aria-label="Bảng xử lý hàng loạt"
+              className="flex h-9 w-9 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-secondary"
+            >
+              <LayoutGrid className="h-5 w-5" />
+            </Link>
             <Link
               href="/auto-replies"
               title="Tự động trả lời"
@@ -296,6 +299,7 @@ export function ConversationList() {
                 >
                   <Row
                     c={c}
+                    shopName={shopNameById.get(c.shopUserId)}
                     active={activeTabId === c.conversationId}
                     onClick={() =>
                       openTab(c.conversationId, { name: c.name, avatar: c.avatar })

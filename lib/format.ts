@@ -17,6 +17,14 @@ export function etsyText(raw: string): string {
     _decoderEl.innerHTML = s;
     s = _decoderEl.value;
   }
+  // Gom khoảng trắng thừa: chuẩn hoá xuống dòng, bỏ space cuối dòng và rút gọn
+  // chuỗi dòng trống liên tiếp (nhiều <br>) còn tối đa 1 dòng trống — tránh bong bóng
+  // tin nhắn bị cách quá nhiều dòng.
+  s = s
+    .replace(/\r\n?/g, "\n")
+    .replace(/[ \t]+\n/g, "\n")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
   return s;
 }
 
@@ -29,9 +37,16 @@ export function timeAgo(unixSeconds: number): string {
   if (m < 60) return `${m} phút trước`;
   const h = Math.floor(m / 60);
   if (h < 24) return `${h} giờ trước`;
-  const d = Math.floor(h / 24);
+
+  // Đếm theo ngày lịch (mốc nửa đêm local), không phải khối 24h trôi qua.
+  const msgDate = new Date(unixSeconds * 1000);
+  const startMsg = new Date(msgDate.getFullYear(), msgDate.getMonth(), msgDate.getDate());
+  const now = new Date();
+  const startNow = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const d = Math.round((startNow.getTime() - startMsg.getTime()) / 86400000);
+
   if (d < 7) return `${d} ngày trước`;
-  return new Date(unixSeconds * 1000).toLocaleDateString("vi-VN", {
+  return msgDate.toLocaleDateString("vi-VN", {
     day: "2-digit",
     month: "2-digit",
   });

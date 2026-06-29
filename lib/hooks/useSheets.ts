@@ -97,6 +97,36 @@ export function useSheetConfigs() {
   return { configs: query.data ?? [], query, add, update, remove, sync };
 }
 
+// ---- Auto-sync định kỳ (2 phút/lần, không cần bấm nút) ----
+// Poll endpoint sync-stale: server tự quyết sheet nào cần sync (TTL) + chống trùng (cờ atomic).
+// Mount 1 lần ở Providers (toàn app). Sync xong → invalidate để UI Cài đặt & panel đơn cập nhật.
+const AUTO_SYNC_INTERVAL_MS = 2 * 60 * 1000;
+
+export function useSheetAutoSync(enabled: boolean) {
+  const qc = useQueryClient();
+  return useQuery({
+    queryKey: ["sheet-auto-sync"],
+    queryFn: async () => {
+      const res = await jsonFetch<{ synced: number; skipped: number; reason?: string }>(
+        "/api/sheets/sync-stale",
+        { method: "POST" },
+      );
+      // Có sheet vừa sync xong → chỉ làm mới bảng đếm ở trang Cài đặt.
+      // CỐ Ý KHÔNG invalidate ["sheet-row"]: panel "Cập nhật Sheet" là trình soạn thảo,
+      // refetch nền có thể đổi `sig` → remount MatchEditor → mất nội dung đang gõ dở.
+      // Người dùng tự bấm nút 🔄 trên panel khi muốn kéo dữ liệu mới.
+      if (res.synced > 0) {
+        qc.invalidateQueries({ queryKey: ["sheet-configs"] });
+      }
+      return res;
+    },
+    enabled,
+    refetchInterval: AUTO_SYNC_INTERVAL_MS,
+    staleTime: AUTO_SYNC_INTERVAL_MS,
+    retry: false,
+  });
+}
+
 // ---- Resolve order rows ----
 // Bỏ transactionId → trả TẤT CẢ dòng của đơn (receipt). Có transactionId → đúng 1 item.
 export function useResolveSheetRow(params: {

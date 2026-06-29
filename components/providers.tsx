@@ -5,6 +5,7 @@ import { SessionProvider } from "next-auth/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ThemeProvider, useTheme } from "next-themes";
 import { Toaster } from "sonner";
+import { SheetAutoSync } from "@/components/settings/SheetAutoSync";
 
 function ThemedToaster() {
   const { resolvedTheme } = useTheme();
@@ -42,6 +43,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
           disableTransitionOnChange
         >
           {children}
+          <SheetAutoSync />
           <ThemedToaster />
         </ThemeProvider>
       </QueryClientProvider>

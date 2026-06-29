@@ -1,12 +1,17 @@
 "use client";
 
+import { useMemo } from "react";
 import { useAgentPerformance } from "@/lib/hooks/useAnalytics";
 import type { AnalyticsFilters } from "@/lib/types/etsy";
 import { PanelCard } from "./PanelCard";
 
 export function AgentPerformance({ filters }: { filters: AnalyticsFilters }) {
   const { data, isPending, isError } = useAgentPerformance(filters);
-  const rows = data?.items ?? [];
+  // Sắp xếp nhân viên theo số Conversations (lớn → nhỏ).
+  const rows = useMemo(
+    () => [...(data?.items ?? [])].sort((a, b) => b.conversationCount - a.conversationCount),
+    [data?.items],
+  );
 
   return (
     <PanelCard

@@ -1,60 +1,48 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { put } from "@vercel/blob";
+import { handleUpload, type HandleUploadBody } from "@vercel/blob/client";
 import { auth } from "@/auth";
 
 // MIME ảnh được phép — tương ứng isImageFile của DORA (message_service.go),
 // bổ sung webp cho phù hợp ảnh hiện đại.
-const ALLOWED = new Set(["image/jpeg", "image/png", "image/gif", "image/webp"]);
-const MAX_BYTES = 15 * 1024 * 1024; // 15MB / ảnh
+const ALLOWED = ["image/jpeg", "image/png", "image/gif", "image/webp"];
 
 /**
- * POST /api/uploads  (multipart/form-data, field "files")
- * Upload ảnh lên Vercel Blob (public URL) để extension fetch rồi upload2Etsy.
- * Trả { urls: string[] }.
+ * POST /api/uploads  (JSON body từ @vercel/blob/client)
+ * Cấp token để client upload ảnh TRỰC TIẾP lên Vercel Blob, bỏ qua giới hạn
+ * 4.5MB body của Serverless Function → KHÔNG giới hạn dung lượng (Blob tới 5TB).
+ * Trả về public URL để extension fetch rồi upload2Etsy.
+ *
+ * Lưu ý: route này được middleware (proxy.ts) miễn auth để webhook
+ * blob.upload-completed (không có cookie) đi qua được. Bảo mật được đảm bảo bởi:
+ *  - onBeforeGenerateToken kiểm tra session trước khi cấp token upload.
+ *  - handleUpload tự xác thực chữ ký của webhook.
  */
-export async function POST(req: NextRequest) {
+export async function POST(req: NextRequest): Promise<NextResponse> {
   try {
-    const session = await auth();
-    if (!session?.user?.email) {
-      return NextResponse.json({ error: "unauthenticated" }, { status: 401 });
-    }
+    const body = (await req.json()) as HandleUploadBody;
+    const json = await handleUpload({
+      body,
+      request: req,
+      // Chỉ người đã đăng nhập mới được cấp token upload.
+      onBeforeGenerateToken: async () => {
+        const session = await auth();
+        if (!session?.user?.email) {
+          throw new Error("unauthenticated");
+        }
+        return {
+          allowedContentTypes: ALLOWED,
+          addRandomSuffix: true,
+          // Không đặt maximumSizeInBytes → không giới hạn dung lượng.
+        };
+      },
+      // Ảnh đã có public URL ngay sau upload; không cần xử lý thêm.
+      onUploadCompleted: async () => {},
+    });
 
-    if (!process.env.BLOB_READ_WRITE_TOKEN) {
-      return NextResponse.json(
-        { error: "BLOB_READ_WRITE_TOKEN chưa cấu hình" },
-        { status: 500 },
-      );
-    }
-
-    const form = await req.formData();
-    const files = form.getAll("files").filter((f): f is File => f instanceof File);
-    if (files.length === 0) {
-      return NextResponse.json({ error: "no files" }, { status: 400 });
-    }
-
-    const urls: string[] = [];
-    for (const file of files) {
-      if (!ALLOWED.has(file.type)) {
-        return NextResponse.json(
-          { error: `loại file không hợp lệ: ${file.type || "unknown"}` },
-          { status: 400 },
-        );
-      }
-      if (file.size > MAX_BYTES) {
-        return NextResponse.json({ error: "ảnh quá lớn (>15MB)" }, { status: 400 });
-      }
-      const blob = await put(file.name || "image.png", file, {
-        access: "public",
-        addRandomSuffix: true,
-        contentType: file.type,
-      });
-      urls.push(blob.url);
-    }
-
-    return NextResponse.json({ urls });
+    return NextResponse.json(json);
   } catch (err) {
     const message = err instanceof Error ? err.message : "Unknown error";
     console.error("[POST /api/uploads]", message);
-    return NextResponse.json({ error: message }, { status: 500 });
+    return NextResponse.json({ error: message }, { status: 400 });
   }
 }

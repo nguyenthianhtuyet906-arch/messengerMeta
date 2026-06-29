@@ -13,6 +13,10 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     Google({
       clientId: process.env.AUTH_GOOGLE_ID,
       clientSecret: process.env.AUTH_GOOGLE_SECRET,
+      // Tự liên kết account Google với user CÓ SẴN cùng email (an toàn vì chỉ 1
+      // provider Google, email do Google xác thực) — tránh OAuthAccountNotLinked
+      // khi đã tồn tại user trùng email nhưng chưa link account.
+      allowDangerousEmailAccountLinking: true,
       // access_type=offline + prompt=consent → Google trả refresh_token (cần để gọi Sheets nền).
       authorization: {
         params: {

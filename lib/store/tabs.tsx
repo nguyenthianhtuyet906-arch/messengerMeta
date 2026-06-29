@@ -23,9 +23,13 @@ interface TabsState {
   isHydrated: boolean;
   openTab: (id: number, meta?: TabMeta) => void;
   openMany: (entries: { id: number; meta?: TabMeta }[]) => void;
+  /** Cập nhật tên/avatar của 1 tab (vd: mở từ deep-link chưa có meta → điền sau khi fetch). */
+  updateMeta: (id: number, meta: TabMeta) => void;
   closeTab: (id: number) => void;
   closeAll: () => void;
   setActive: (id: number) => void;
+  /** Bỏ chọn tab đang active (giữ nguyên danh sách tab) — dùng để quay về danh sách trên mobile. */
+  clearActive: () => void;
   cycleActive: (delta: number) => void;
 }
 
@@ -44,11 +48,28 @@ export function TabsProvider({ children }: { children: React.ReactNode }) {
   const [meta, setMeta] = useState<Record<number, TabMeta>>({});
   const hydrated = useRef(false);
   const [isHydrated, setIsHydrated] = useState(false);
+  // Tab mở qua "?batch=" là tab trình duyệt riêng biệt → lưu state vào sessionStorage
+  // (cô lập theo từng tab) thay vì localStorage, để các đợt mở không trộn vào nhau.
+  const storageRef = useRef<Storage | null>(null);
 
-  // Khôi phục tab từ localStorage.
+  // Khôi phục tab từ storage phù hợp (local cho messenger chính, session cho batch).
   useEffect(() => {
+    let storage: Storage = localStorage;
     try {
-      const raw = localStorage.getItem(STORAGE_KEY);
+      const token = new URLSearchParams(window.location.search).get("batch");
+      // batchMode “dính” theo tab để giữ cô lập qua reload/điều hướng (URL bị thay đổi).
+      if (token !== null) {
+        sessionStorage.setItem("messenger.batchMode", "1");
+        sessionStorage.setItem("messenger.batchToken", token);
+      }
+      if (sessionStorage.getItem("messenger.batchMode") === "1") storage = sessionStorage;
+    } catch {
+      /* ignore */
+    }
+    storageRef.current = storage;
+
+    try {
+      const raw = storage.getItem(STORAGE_KEY);
       if (raw) {
         const p = JSON.parse(raw) as Persisted;
         setOpenTabs(p.openTabs ?? []);
@@ -66,7 +87,7 @@ export function TabsProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (!hydrated.current) return;
     try {
-      localStorage.setItem(
+      (storageRef.current ?? localStorage).setItem(
         STORAGE_KEY,
         JSON.stringify({ openTabs, activeTabId, meta } satisfies Persisted),
       );
@@ -102,6 +123,10 @@ export function TabsProvider({ children }: { children: React.ReactNode }) {
     });
   }, []);
 
+  const updateMeta = useCallback((id: number, m: TabMeta) => {
+    setMeta((prev) => ({ ...prev, [id]: m }));
+  }, []);
+
   const closeTab = useCallback((id: number) => {
     setOpenTabs((prev) => {
       const idx = prev.indexOf(id);
@@ -122,6 +147,8 @@ export function TabsProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const setActive = useCallback((id: number) => setActiveTabId(id), []);
+
+  const clearActive = useCallback(() => setActiveTabId(null), []);
 
   // Chuyển active tab theo hướng (+1 kế tiếp, -1 lùi), wrap vòng.
   const cycleActive = useCallback(
@@ -144,9 +171,11 @@ export function TabsProvider({ children }: { children: React.ReactNode }) {
       isHydrated,
       openTab,
       openMany,
+      updateMeta,
       closeTab,
       closeAll,
       setActive,
+      clearActive,
       cycleActive,
     }),
     [
@@ -156,9 +185,11 @@ export function TabsProvider({ children }: { children: React.ReactNode }) {
       isHydrated,
       openTab,
       openMany,
+      updateMeta,
       closeTab,
       closeAll,
       setActive,
+      clearActive,
       cycleActive,
     ],
   );
