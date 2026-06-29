@@ -282,7 +282,7 @@ export async function getShopAnalytics(opts: AnalyticsOpts): Promise<ShopAnalyti
 /** Agent Performance — đếm tin nhắn nhân viên gửi (sender_email != ""), lọc theo created_at. */
 export async function getAgentPerformance(opts: AnalyticsOpts): Promise<AgentPerformanceResponse> {
   const coll = await getMessagesCollection();
-  const match: Document = { sender_email: { $ne: "" } };
+  const match: Document = { sender_email: { $ne: "" }, status: { $ne: "FAILED" } };
   // created_at là Date — chuyển from/to (giây) sang Date.
   const range: Record<string, Date> = {};
   if (typeof opts.from === "number" && Number.isFinite(opts.from)) {
