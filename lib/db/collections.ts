@@ -1,6 +1,6 @@
 import type { Collection, Db } from "mongodb";
 import clientPromise from "@/lib/mongodb-client";
-import type { AutoReplyDoc, ConversationDoc, EtsyOrderDoc, MessageDoc, MessageTemplateDoc, OrderTrackingDoc, PersonalizationFileDoc } from "@/lib/types/etsy";
+import type { AiSuggestionEventDoc, AutoReplyDoc, ConversationDoc, EtsyOrderDoc, MessageDoc, MessageTemplateDoc, OrderTrackingDoc, PersonalizationFileDoc, ReplyExampleDoc } from "@/lib/types/etsy";
 import type { SheetConfigDoc, SheetRowDoc } from "@/lib/types/sheets";
 import type { OrderStatusDoc } from "@/lib/types/order-status";
 import type { TrackingJob } from "@/lib/types/tracking";
@@ -87,6 +87,18 @@ export async function getMessageTemplatesCollection(): Promise<Collection<Messag
 export async function getPersonalizationFilesCollection(): Promise<Collection<PersonalizationFileDoc>> {
   const db = await getDb();
   return db.collection<PersonalizationFileDoc>("personalization_files");
+}
+
+/** Collection `reply_examples` — kho ví dụ trả lời thật cho few-shot động (GĐ2). */
+export async function getReplyExamplesCollection(): Promise<Collection<ReplyExampleDoc>> {
+  const db = await getDb();
+  return db.collection<ReplyExampleDoc>("reply_examples");
+}
+
+/** Collection `ai_suggestion_events` — event đo lường acceptance rate (GĐ3). */
+export async function getAiSuggestionEventsCollection(): Promise<Collection<AiSuggestionEventDoc>> {
+  const db = await getDb();
+  return db.collection<AiSuggestionEventDoc>("ai_suggestion_events");
 }
 
 export async function getTrackingJobsCollection(): Promise<Collection<TrackingJob>> {

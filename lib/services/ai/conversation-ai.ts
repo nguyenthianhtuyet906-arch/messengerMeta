@@ -9,6 +9,12 @@ import { getConversationsCollection } from "@/lib/db/collections";
 import { getConversationMessages } from "@/lib/services/message-read";
 import { firstNumber, firstString } from "@/lib/services/etsy-utils";
 import type { AIResponse, ConversationDoc } from "@/lib/types/etsy";
+import {
+  getOrderContextForConversation,
+  formatOrdersForPrompt,
+} from "@/lib/services/ai/order-context";
+import { formatKnowledgeBaseForPrompt } from "@/lib/services/ai/knowledge-base";
+import { getExamplesBlockForConversation } from "@/lib/services/ai/reply-examples";
 
 const AI_TAGS = new Set<string>(CONVERSATION_TAGS);
 
@@ -72,7 +78,18 @@ export async function createAIResponse(
     })),
   };
 
-  const prompt = prepareDifyPrompt(ctx, input);
+  // GĐ1 grounding + GĐ2 few-shot: đơn hàng thật + chính sách + ví dụ trả lời thật.
+  const orders = await getOrderContextForConversation(customerId);
+  const examplesBlock = await getExamplesBlockForConversation(shopUserId, items);
+  const factsBlock = [
+    formatOrdersForPrompt(orders),
+    formatKnowledgeBaseForPrompt(),
+    examplesBlock,
+  ]
+    .filter(Boolean)
+    .join("\n\n");
+
+  const prompt = prepareDifyPrompt(ctx, input, factsBlock);
   const raw = await callGeminiAPI(prompt, input);
   const result = processAIResponse(raw);
 

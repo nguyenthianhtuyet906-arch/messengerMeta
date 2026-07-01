@@ -3,6 +3,7 @@ import { getConversationsCollection, getMessagesCollection } from "@/lib/db/coll
 import type { ConversationDoc, EtsyRaw, MessageDoc, MessageStatus } from "@/lib/types/etsy";
 import { asNumber, firstNumber, firstString } from "@/lib/services/etsy-utils";
 import { publishChatMessage, publishNewMessages } from "@/lib/services/ably-publish";
+import { captureSentReply } from "@/lib/services/ai/learning";
 
 export interface CreatedMessage {
   id: string;
@@ -55,6 +56,15 @@ export async function createOutgoingMessage(
     },
   };
   await msgColl.insertOne(doc);
+
+  // GĐ3: vòng lặp học + đo lường acceptance (chạy nền, không chặn/không làm hỏng gửi).
+  void captureSentReply({
+    conversationId,
+    shopId: shopUserId,
+    shopName,
+    sentText: text,
+    senderEmail,
+  }).catch((e) => console.error("[send] captureSentReply:", (e as Error)?.message));
 
   // Đẩy tới extension. Không có browser → FAILED.
   let targeted: string | null = null;

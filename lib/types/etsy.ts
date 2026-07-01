@@ -507,3 +507,40 @@ export interface MessageTemplate {
   created_at: string;
   updated_at: string;
 }
+
+/**
+ * Collection `reply_examples` — ví dụ trả lời THẬT của nhân viên, dùng few-shot
+ * động (GĐ2). embedding là vector của customerSnippet để truy xuất case tương tự.
+ */
+export interface ReplyExampleDoc {
+  _id?: ObjectId;
+  shopId: number; // = shopUserId của hội thoại (định danh shop)
+  shopName?: string;
+  intentTag: string; // tag phân loại (có thể "")
+  customerSnippet: string; // tin khách kích hoạt (nguồn để embed)
+  staffReply: string; // tin nhân viên đã gửi
+  embedding: number[]; // vector của customerSnippet
+  source: "seed" | "sent"; // seed = backfill lịch sử; sent = học từ tin gửi (GĐ3)
+  dedupKey: string; // sha1(shopId|customer|reply) — chống trùng, seed idempotent
+  created_at: Date;
+}
+
+/** Kết quả sử dụng gợi ý khi nhân viên gửi tin (đo lường GĐ3). */
+export type SuggestionOutcome = "sent_asis" | "edited" | "custom" | "no_suggestion";
+
+/**
+ * Collection `ai_suggestion_events` — mỗi lần nhân viên gửi tin, ghi 1 event để
+ * đo tỉ lệ gợi ý được dùng (acceptance rate) theo thời gian & theo intent.
+ */
+export interface AiSuggestionEventDoc {
+  _id?: ObjectId;
+  conversationId: number;
+  shopId: number;
+  shopName?: string;
+  intentTag: string;
+  outcome: SuggestionOutcome;
+  hadSuggestion: boolean; // có gợi ý AI tại thời điểm gửi không
+  similarity: number; // độ giống tin gửi vs gợi ý gần nhất (0..1)
+  createdBy: string; // email nhân viên gửi
+  created_at: Date;
+}
