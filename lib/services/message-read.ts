@@ -170,7 +170,12 @@ export async function getConversationMessages(opts: {
       ])
     : "";
 
-  const filter: Record<string, unknown> = { "etsy.conversation_id": opts.conversationId };
+  // Ẩn tin gửi thất bại (status FAILED) khỏi khung chat — tin đi lỗi không đến khách.
+  // ($ne cũng khớp tin từ Etsy có status "" hoặc thiếu field → vẫn hiện bình thường.)
+  const filter: Record<string, unknown> = {
+    "etsy.conversation_id": opts.conversationId,
+    status: { $ne: "FAILED" },
+  };
   if (typeof opts.before === "number") {
     filter["etsy.message_order"] = { $lt: opts.before };
   }

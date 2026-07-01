@@ -247,10 +247,19 @@ export function ConversationView({
     }
   };
 
-  const toggleAi = () => {
-    const next = !aiOpen;
-    setAiOpen(next);
-    if (next) void fetchAI();
+  // Nút Sparkles ở ô chat:
+  // - Không có text + panel đang mở → đóng panel (như bật/tắt).
+  // - Còn lại → "tạo gợi ý từ nội dung đang gõ": panel đang mở thì tạo lại (force),
+  //   panel đang đóng thì mở lại (dùng cache nếu cùng định hướng).
+  const generateAi = () => {
+    if (aiLoading) return;
+    const wasOpen = aiOpen;
+    if (!draft.trim() && wasOpen) {
+      setAiOpen(false);
+      return;
+    }
+    setAiOpen(true);
+    void fetchAI({ force: wasOpen });
   };
 
   const useSuggestion = (text: string) => {
@@ -394,10 +403,18 @@ export function ConversationView({
             </button>
           </div>
 
-          {aiLoading && aiOptions.length === 0 ? (
-            <p className="mt-2 text-xs text-muted-foreground">Đang tạo gợi ý…</p>
-          ) : aiOptions.length > 0 ? (
-            <div className="mt-2 grid gap-2 sm:grid-cols-2">
+          {aiLoading && (
+            <p className="mt-2 flex items-center gap-1.5 text-xs font-medium text-info">
+              <Loader2 className="h-3.5 w-3.5 animate-spin" /> Đang tạo gợi ý…
+            </p>
+          )}
+          {aiOptions.length > 0 ? (
+            <div
+              className={
+                "mt-2 grid gap-2 sm:grid-cols-2" +
+                (aiLoading ? " pointer-events-none opacity-50" : "")
+              }
+            >
               {aiOptions.map((o) => (
                 <button
                   key={o.key}
@@ -494,17 +511,23 @@ export function ConversationView({
             className="chat-input-scroll max-h-32 flex-1 resize-none overflow-y-hidden rounded-2xl border-0 bg-secondary px-4 py-2.5 text-sm leading-relaxed text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
           />
           <button
-            onClick={toggleAi}
-            aria-label="Gợi ý AI"
-            aria-pressed={aiOpen}
+            onClick={generateAi}
+            disabled={aiLoading}
+            aria-label={aiLoading ? "Đang tạo gợi ý AI…" : "Tạo gợi ý AI"}
+            aria-busy={aiLoading}
+            title="Tạo gợi ý AI từ nội dung đang gõ"
             className={
-              "flex h-11 w-11 shrink-0 items-center justify-center rounded-full transition-colors " +
+              "flex h-11 w-11 shrink-0 items-center justify-center rounded-full transition-colors disabled:opacity-70 " +
               (aiOpen
                 ? "bg-info-soft text-info"
                 : "text-info hover:bg-info-soft")
             }
           >
-            <Sparkles className="h-5 w-5" />
+            {aiLoading ? (
+              <Loader2 className="h-5 w-5 animate-spin" />
+            ) : (
+              <Sparkles className="h-5 w-5" />
+            )}
           </button>
           <button
             onClick={submit}
