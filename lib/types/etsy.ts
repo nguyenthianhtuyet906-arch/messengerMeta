@@ -473,6 +473,22 @@ export interface AgentPerformanceResponse {
   items: AgentPerfRow[];
 }
 
+/** 1 dòng nhân viên trong panel "Hiệu quả gợi ý AI". */
+export interface AiAgentMetricRow {
+  senderEmail: string;
+  withSuggestion: number; // số lần gửi khi CÓ gợi ý
+  used: number; // số lần dùng gợi ý (gửi y hệt + có sửa)
+  usageRate: number; // % dùng gợi ý (0..100)
+}
+
+/** Chỉ số hiển thị trên panel Hiệu quả gợi ý AI (nút chuyển giống Phân tích shop). */
+export type AiMetricKey = "used" | "usageRate";
+
+/** Phản hồi GET /api/analytics/ai-effectiveness. */
+export interface AiEffectivenessResponse {
+  items: AiAgentMetricRow[];
+}
+
 /** 1 dòng tag trong Tags Overview. `untagged=true` là bucket "No Tag". */
 export interface TagOverviewRow {
   tag: string;
