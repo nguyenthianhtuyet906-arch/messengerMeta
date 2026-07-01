@@ -18,6 +18,7 @@ import { MessageList } from "@/components/messenger/MessageList";
 import { useSendMessage } from "@/lib/hooks/useSendMessage";
 import { useMessages } from "@/lib/hooks/useMessages";
 import { useShops } from "@/lib/hooks/useShops";
+import { useNotes } from "@/lib/hooks/useNotes";
 import type { TabMeta } from "@/lib/store/tabs";
 import type { AIResponse } from "@/lib/types/etsy";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -43,6 +44,7 @@ export function ConversationView({
   onDraftChange,
   autoFetchAI = true,
   aiTrigger = 0,
+  autoFocus = false,
   onResolveMeta,
   onDismiss,
 }: {
@@ -53,6 +55,8 @@ export function ConversationView({
   onToggleInfo?: () => void;
   notesOpen?: boolean;
   onToggleNotes?: () => void;
+  /** Tự đặt con trỏ vào ô chat khi mở/chuyển hội thoại (chỉ view đơn, không dùng ở Bảng xử lý). */
+  autoFocus?: boolean;
   /** Khi truyền → draft do bên ngoài điều khiển (cho Bảng xử lý: điền mẫu / gửi hàng loạt). */
   draft?: string;
   onDraftChange?: (v: string) => void;
@@ -87,11 +91,27 @@ export function ConversationView({
       onResolveMeta({ name: fetchedName, avatar: meta?.avatar || fetchedAvatar || "" });
     }
   }, [fetchedName, fetchedAvatar, meta?.name, meta?.avatar, onResolveMeta]);
+  // Có ghi chú → hiện chấm cảnh báo trên icon Ghi chú (dùng chung cache react-query
+  // với NotesPanel; tự cập nhật khi thêm/xoá note).
+  const { notes } = useNotes(conversationId);
+  const hasNotes = notes.length > 0;
   const { data: shops } = useShops();
   const shopName = useMemo(
     () => shops?.find((s) => s.userId === shopUserId)?.shopName ?? "",
     [shops, shopUserId],
   );
+
+  // Chuyển tab (Ctrl+`) / mở hội thoại → remount (key=conversationId) → đặt con trỏ ngay
+  // vào ô chat, caret ở cuối draft (nếu có) để gõ liền không cần click.
+  useEffect(() => {
+    if (!autoFocus) return;
+    const el = textareaRef.current;
+    if (!el) return;
+    el.focus();
+    const end = el.value.length;
+    el.setSelectionRange(end, end);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autoFocus]);
 
   // Tự cao theo nội dung: thu về 0 để đo đúng, cap ở MAX, chỉ bật cuộn khi tràn.
   useLayoutEffect(() => {
@@ -289,16 +309,20 @@ export function ConversationView({
           {onToggleNotes ? (
             <button
               onClick={onToggleNotes}
-              aria-label="Ghi chú"
+              aria-label={hasNotes ? "Ghi chú (có ghi chú cần lưu ý)" : "Ghi chú"}
               aria-pressed={notesOpen}
+              title={hasNotes ? "Hội thoại có ghi chú cần lưu ý" : "Ghi chú"}
               className={
-                "flex h-8 w-8 items-center justify-center rounded-full transition-colors " +
+                "relative flex h-8 w-8 items-center justify-center rounded-full transition-colors " +
                 (notesOpen
                   ? "bg-accent text-primary"
                   : "text-muted-foreground hover:bg-secondary")
               }
             >
               <StickyNote className="h-4 w-4" />
+              {hasNotes && (
+                <span className="absolute right-1 top-1 h-2 w-2 rounded-full bg-warning ring-2 ring-card" />
+              )}
             </button>
           ) : null}
           {onToggleInfo ? (

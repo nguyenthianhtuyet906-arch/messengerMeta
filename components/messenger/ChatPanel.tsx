@@ -38,6 +38,7 @@ export function ChatPanel() {
         meta={meta[activeTabId]}
         onResolveMeta={(m) => updateMeta(activeTabId, m)}
         onBack={clearActive}
+        autoFocus
         infoOpen={infoOpen}
         onToggleInfo={() => setInfoOpen((v) => !v)}
         notesOpen={notesOpen}
