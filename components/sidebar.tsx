@@ -60,6 +60,7 @@ export function Sidebar() {
 
   // Phát hiện mobile để: trên drawer luôn hiển thị dạng mở rộng (bỏ qua trạng thái thu gọn của desktop).
   useEffect(() => {
+    
     const mq = window.matchMedia("(max-width: 767px)")
     const update = () => setIsMobile(mq.matches)
     update()
