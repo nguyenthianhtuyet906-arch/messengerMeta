@@ -36,7 +36,7 @@ export const SEND_ORDER_MESSAGE_EVENT = "send-order-message";
  * Chọn 1 browser extension đang online trên channel của shop (presence) —
  * lấy client cuối để đảm bảo chỉ 1 client xử lý. Trả null nếu không có ai online.
  */
-async function pickTargetClient(channel: Ably.RestChannel): Promise<string | null> {
+async function pickTargetClient(channel: Ably.Channel): Promise<string | null> {
   const presence = await channel.presence.get();
   const members = presence.items ?? [];
   if (members.length === 0) return null;

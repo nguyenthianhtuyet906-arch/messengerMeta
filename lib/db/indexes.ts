@@ -98,6 +98,21 @@ const TRACKING_JOB_INDEXES: IndexDef[] = [
   { keys: { shop_name: 1, created_at: -1 }, options: { name: "idx_shop_created" } },
 ];
 
+const REPLY_EXAMPLE_INDEXES: IndexDef[] = [
+  // Lọc theo shop + lấy ví dụ mới nhất (candidate cho cosine fallback).
+  { keys: { shopId: 1, created_at: -1 }, options: { name: "idx_shop_created" } },
+  // Chống trùng ví dụ (seed/learning idempotent). Vector index tạo riêng trong Atlas.
+  { keys: { dedupKey: 1 }, options: { name: "uq_dedup", unique: true } },
+  // Cắt FIFO khi vượt trần: tìm ví dụ cũ nhất theo created_at.
+  { keys: { created_at: 1 }, options: { name: "idx_created_at" } },
+];
+
+const AI_EVENT_INDEXES: IndexDef[] = [
+  // Lọc theo khoảng thời gian (dashboard) + theo shop.
+  { keys: { created_at: -1 }, options: { name: "idx_created_at" } },
+  { keys: { shopId: 1, created_at: -1 }, options: { name: "idx_shop_created" } },
+];
+
 function isAlreadyExistsError(err: unknown): boolean {
   const msg = err instanceof Error ? err.message : String(err);
   return (
@@ -128,4 +143,6 @@ export async function ensureIndexes(db: Db): Promise<void> {
   await createIndexes(db, "sheet_rows", SHEET_ROW_INDEXES);
   await createIndexes(db, "message_templates", MESSAGE_TEMPLATE_INDEXES);
   await createIndexes(db, "tracking_jobs", TRACKING_JOB_INDEXES);
+  await createIndexes(db, "reply_examples", REPLY_EXAMPLE_INDEXES);
+  await createIndexes(db, "ai_suggestion_events", AI_EVENT_INDEXES);
 }

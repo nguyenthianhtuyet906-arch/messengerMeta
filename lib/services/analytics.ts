@@ -1,5 +1,6 @@
 import type { Document, Filter, WithId } from "mongodb";
 import {
+  getAiSuggestionEventsCollection,
   getConversationsCollection,
   getMessagesCollection,
 } from "@/lib/db/collections";
@@ -7,6 +8,7 @@ import { getShops } from "@/lib/services/shop-read";
 import { mapConversation } from "@/lib/services/conversation-read";
 import type {
   AgentPerformanceResponse,
+  AiEffectivenessResponse,
   ShopAnalyticsResponse,
   ConversationDoc,
   MessageOverviewResponse,
@@ -282,6 +284,7 @@ export async function getShopAnalytics(opts: AnalyticsOpts): Promise<ShopAnalyti
 /** Agent Performance — đếm tin nhắn nhân viên gửi (sender_email != ""), lọc theo created_at. */
 export async function getAgentPerformance(opts: AnalyticsOpts): Promise<AgentPerformanceResponse> {
   const coll = await getMessagesCollection();
+  // Chỉ tính tin nhân viên gửi thành công — loại tin FAILED khỏi năng suất.
   const match: Document = { sender_email: { $ne: "" }, status: { $ne: "FAILED" } };
   // created_at là Date — chuyển from/to (giây) sang Date.
   const range: Record<string, Date> = {};
@@ -319,6 +322,48 @@ export async function getAgentPerformance(opts: AnalyticsOpts): Promise<AgentPer
       messageCount: r.messageCount,
       conversationCount: r.conversationCount,
     })),
+  };
+}
+
+/** Hiệu quả gợi ý AI theo nhân viên — group ai_suggestion_events theo createdBy. */
+export async function getAiEffectiveness(opts: AnalyticsOpts): Promise<AiEffectivenessResponse> {
+  const events = await getAiSuggestionEventsCollection();
+  // Chỉ tính các lần CÓ gợi ý (mẫu số của tỉ lệ dùng).
+  const match: Document = { hadSuggestion: true };
+  const range: Record<string, Date> = {};
+  if (typeof opts.from === "number" && Number.isFinite(opts.from)) {
+    range.$gte = new Date(opts.from * 1000);
+  }
+  if (typeof opts.to === "number" && Number.isFinite(opts.to)) {
+    range.$lte = new Date(opts.to * 1000);
+  }
+  if (Object.keys(range).length > 0) match.created_at = range;
+  // events.shopId = shopUserId (= user_data.user_id) nên khớp bộ lọc shop của dashboard.
+  if (opts.shopIds && opts.shopIds.length > 0) match.shopId = { $in: opts.shopIds };
+
+  const rows = await events
+    .aggregate<{ _id: string; withSuggestion: number; used: number }>([
+      { $match: match },
+      {
+        $group: {
+          _id: "$createdBy",
+          withSuggestion: { $sum: 1 },
+          used: { $sum: { $cond: [{ $in: ["$outcome", ["sent_asis", "edited"]] }, 1, 0] } },
+        },
+      },
+      { $sort: { used: -1, _id: 1 } },
+    ])
+    .toArray();
+
+  return {
+    items: rows
+      .filter((r) => r._id)
+      .map((r) => ({
+        senderEmail: r._id,
+        withSuggestion: r.withSuggestion,
+        used: r.used,
+        usageRate: r.withSuggestion ? Math.round((r.used / r.withSuggestion) * 1000) / 10 : 0,
+      })),
   };
 }
 

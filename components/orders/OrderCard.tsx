@@ -1,6 +1,6 @@
 "use client";
 
-import { CheckCircle2, MessageCircle, Store, Tag, Truck } from "lucide-react";
+import { CheckCircle2, FileSpreadsheet, MessageCircle, Store, Tag, Truck } from "lucide-react";
 import type { OrderListItem, OrderTransaction } from "@/lib/types/etsy";
 
 /** Format unix giây → "03 Jul, 2026" (giống Etsy). */
@@ -17,9 +17,11 @@ function formatDate(unix: number): string {
 export function OrderCard({
   order,
   onMessage,
+  onUpdateSheet,
 }: {
   order: OrderListItem;
   onMessage: (order: OrderListItem) => void;
+  onUpdateSheet: (order: OrderListItem) => void;
 }) {
   const addr = order.toAddress;
   return (
@@ -69,13 +71,22 @@ export function OrderCard({
             )}
           </div>
         </div>
-        <button
-          onClick={() => onMessage(order)}
-          className="flex shrink-0 items-center gap-1.5 rounded-full border border-border px-3 py-1.5 text-sm text-foreground hover:bg-secondary"
-        >
-          <MessageCircle className="h-4 w-4" />
-          Nhắn khách
-        </button>
+        <div className="flex shrink-0 items-center gap-2">
+          <button
+            onClick={() => onUpdateSheet(order)}
+            className="flex items-center gap-1.5 rounded-full border border-border px-3 py-1.5 text-sm text-foreground hover:bg-secondary"
+          >
+            <FileSpreadsheet className="h-4 w-4" />
+            Cập nhật Sheet
+          </button>
+          <button
+            onClick={() => onMessage(order)}
+            className="flex items-center gap-1.5 rounded-full border border-border px-3 py-1.5 text-sm text-foreground hover:bg-secondary"
+          >
+            <MessageCircle className="h-4 w-4" />
+            Nhắn khách
+          </button>
+        </div>
       </div>
 
       {/* Sản phẩm */}
@@ -95,13 +106,19 @@ export function OrderCard({
             <div className="min-w-0 text-sm">
               <p className="line-clamp-2 font-medium text-foreground">{t.title}</p>
               <p className="text-muted-foreground">Quantity {t.quantity}</p>
-              {t.personalization && (
-                <p className="mt-1 text-xs font-medium text-muted-foreground">Personalization</p>
-              )}
+              {/* Thứ tự bám Etsy: option (Color, Size) trước, Personalization sau cùng. */}
               {t.variations.map((v, i) => (
                 <p key={i} className="text-muted-foreground">
                   <span className="text-foreground">{v.property}</span> {v.value}
                 </p>
+              ))}
+              {/* Mỗi dòng personalization giữ nhãn riêng (Personalization / Back Side / Your Photo…). */}
+              {t.personalizations.map((p, i) => (
+                <div key={i} className="mt-1">
+                  <p className="text-xs font-medium text-muted-foreground">{p.label}</p>
+                  {/* Giá trị có thể nhiều dòng ("My Husband\nWendy") → giữ xuống dòng. */}
+                  <p className="whitespace-pre-line text-foreground">{p.value}</p>
+                </div>
               ))}
               <PersonalizationPhotos t={t} />
             </div>

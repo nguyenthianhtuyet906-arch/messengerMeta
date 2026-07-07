@@ -3,6 +3,7 @@
 import { useQuery } from "@tanstack/react-query";
 import type {
   AgentPerformanceResponse,
+  AiEffectivenessResponse,
   AnalyticsFilters,
   ShopAnalyticsResponse,
   MessageOverviewResponse,
@@ -48,6 +49,15 @@ export function useAgentPerformance(filters: AnalyticsFilters) {
     queryKey: ["analytics", "agents", filters],
     queryFn: () =>
       fetchJson<AgentPerformanceResponse>("/api/analytics/agent-performance", filters),
+    ...COMMON,
+  });
+}
+
+export function useAiEffectiveness(filters: AnalyticsFilters) {
+  return useQuery({
+    queryKey: ["analytics", "ai-effectiveness", filters],
+    queryFn: () =>
+      fetchJson<AiEffectivenessResponse>("/api/analytics/ai-effectiveness", filters),
     ...COMMON,
   });
 }

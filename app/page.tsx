@@ -5,6 +5,7 @@ import { DashboardDateFilter } from "@/components/dashboard/DashboardDateFilter"
 import { MessageOverview } from "@/components/dashboard/MessageOverview";
 import { ShopAnalytics } from "@/components/dashboard/ShopAnalytics";
 import { AgentPerformance } from "@/components/dashboard/AgentPerformance";
+import { AiEffectiveness } from "@/components/dashboard/AiEffectiveness";
 import { TagsOverview } from "@/components/dashboard/TagsOverview";
 import { rangeForPreset, type DateRange, type PresetKey } from "@/lib/dashboard/date-presets";
 import { MobileMenuButton } from "@/components/sidebar";
@@ -40,12 +41,13 @@ export default function DashboardPage() {
           <DashboardDateFilter presetKey={presetKey} range={range} onChange={handleChange} />
         </div>
 
-        {/* Lưới 4 panel */}
+        {/* Lưới panel */}
         <div className="grid grid-cols-1 gap-5 xl:grid-cols-2">
           <MessageOverview filters={filters} />
           <TagsOverview filters={filters} />
           <AgentPerformance filters={filters} />
           <ShopAnalytics filters={filters} />
+          <AiEffectiveness filters={filters} />
         </div>
       </div>
     </div>

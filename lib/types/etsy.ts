@@ -270,6 +270,14 @@ export interface EtsyOrderDoc {
 /** Tab trên trang Orders (mirror Etsy: New / Completed). */
 export type OrderTab = "New" | "Completed";
 
+/** 1 dòng personalization của khách — label = câu hỏi Etsy, value = câu trả lời. */
+export interface OrderPersonalization {
+  /** Nhãn câu hỏi (vd "Personalization", "Back Side", "Your Photo"). */
+  label: string;
+  /** Câu trả lời của khách (giữ xuống dòng để render multi-line). */
+  value: string;
+}
+
 /** 1 dòng sản phẩm trong đơn (data.transactions[]). */
 export interface OrderTransaction {
   transactionId: number;
@@ -280,8 +288,11 @@ export interface OrderTransaction {
   quantity: number;
   /** Các variation thường (Size/Color/Style…), KHÔNG gồm Personalization. */
   variations: { property: string; value: string }[];
-  /** Nội dung Personalization của khách (giữ xuống dòng để render multi-line). */
-  personalization: string;
+  /**
+   * TẤT CẢ dòng personalization của khách (1 đơn có thể nhiều: "Personalization",
+   * "Back Side", "Your Photo"…). Giữ nguyên thứ tự & nhãn — KHÔNG gộp/ghi đè.
+   */
+  personalizations: OrderPersonalization[];
   /** Ảnh khách upload ("Your Photo") — enrich từ personalization_files theo transaction_id. */
   personalizationFiles: PersonalizationFile[];
 }
@@ -473,6 +484,22 @@ export interface AgentPerformanceResponse {
   items: AgentPerfRow[];
 }
 
+/** 1 dòng nhân viên trong panel "Hiệu quả gợi ý AI". */
+export interface AiAgentMetricRow {
+  senderEmail: string;
+  withSuggestion: number; // số lần gửi khi CÓ gợi ý
+  used: number; // số lần dùng gợi ý (gửi y hệt + có sửa)
+  usageRate: number; // % dùng gợi ý (0..100)
+}
+
+/** Chỉ số hiển thị trên panel Hiệu quả gợi ý AI (nút chuyển giống Phân tích shop). */
+export type AiMetricKey = "used" | "usageRate";
+
+/** Phản hồi GET /api/analytics/ai-effectiveness. */
+export interface AiEffectivenessResponse {
+  items: AiAgentMetricRow[];
+}
+
 /** 1 dòng tag trong Tags Overview. `untagged=true` là bucket "No Tag". */
 export interface TagOverviewRow {
   tag: string;
@@ -506,4 +533,41 @@ export interface MessageTemplate {
   content: string;
   created_at: string;
   updated_at: string;
+}
+
+/**
+ * Collection `reply_examples` — ví dụ trả lời THẬT của nhân viên, dùng few-shot
+ * động (GĐ2). embedding là vector của customerSnippet để truy xuất case tương tự.
+ */
+export interface ReplyExampleDoc {
+  _id?: ObjectId;
+  shopId: number; // = shopUserId của hội thoại (định danh shop)
+  shopName?: string;
+  intentTag: string; // tag phân loại (có thể "")
+  customerSnippet: string; // tin khách kích hoạt (nguồn để embed)
+  staffReply: string; // tin nhân viên đã gửi
+  embedding: number[]; // vector của customerSnippet
+  source: "seed" | "sent"; // seed = backfill lịch sử; sent = học từ tin gửi (GĐ3)
+  dedupKey: string; // sha1(shopId|customer|reply) — chống trùng, seed idempotent
+  created_at: Date;
+}
+
+/** Kết quả sử dụng gợi ý khi nhân viên gửi tin (đo lường GĐ3). */
+export type SuggestionOutcome = "sent_asis" | "edited" | "custom" | "no_suggestion";
+
+/**
+ * Collection `ai_suggestion_events` — mỗi lần nhân viên gửi tin, ghi 1 event để
+ * đo tỉ lệ gợi ý được dùng (acceptance rate) theo thời gian & theo intent.
+ */
+export interface AiSuggestionEventDoc {
+  _id?: ObjectId;
+  conversationId: number;
+  shopId: number;
+  shopName?: string;
+  intentTag: string;
+  outcome: SuggestionOutcome;
+  hadSuggestion: boolean; // có gợi ý AI tại thời điểm gửi không
+  similarity: number; // độ giống tin gửi vs gợi ý gần nhất (0..1)
+  createdBy: string; // email nhân viên gửi
+  created_at: Date;
 }
