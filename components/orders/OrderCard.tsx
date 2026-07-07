@@ -112,13 +112,14 @@ export function OrderCard({
                   <span className="text-foreground">{v.property}</span> {v.value}
                 </p>
               ))}
-              {t.personalization && (
-                <div className="mt-1">
-                  <p className="text-xs font-medium text-muted-foreground">Personalization</p>
+              {/* Mỗi dòng personalization giữ nhãn riêng (Personalization / Back Side / Your Photo…). */}
+              {t.personalizations.map((p, i) => (
+                <div key={i} className="mt-1">
+                  <p className="text-xs font-medium text-muted-foreground">{p.label}</p>
                   {/* Giá trị có thể nhiều dòng ("My Husband\nWendy") → giữ xuống dòng. */}
-                  <p className="whitespace-pre-line text-foreground">{t.personalization}</p>
+                  <p className="whitespace-pre-line text-foreground">{p.value}</p>
                 </div>
-              )}
+              ))}
               <PersonalizationPhotos t={t} />
             </div>
           </div>

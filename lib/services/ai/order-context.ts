@@ -96,8 +96,11 @@ export function formatOrdersForPrompt(orders: OrderListItem[]): string {
         const variants = t.variations.map((v) => `${v.property}: ${v.value}`).join(", ");
         const parts = [`"${t.title || "item"}" x${t.quantity || 1}`];
         if (variants) parts.push(`[${variants}]`);
-        if (t.personalization) {
-          parts.push(`personalization: "${t.personalization.replace(/\s+/g, " ").trim()}"`);
+        if (t.personalizations.length > 0) {
+          const p = t.personalizations
+            .map((x) => `${x.label}: "${x.value.replace(/\s+/g, " ").trim()}"`)
+            .join(", ");
+          parts.push(`personalization: {${p}}`);
         }
         lines.push(`    - ${parts.join(" ")}`);
       }

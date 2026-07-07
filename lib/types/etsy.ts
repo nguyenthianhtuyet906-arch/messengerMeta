@@ -270,6 +270,14 @@ export interface EtsyOrderDoc {
 /** Tab trên trang Orders (mirror Etsy: New / Completed). */
 export type OrderTab = "New" | "Completed";
 
+/** 1 dòng personalization của khách — label = câu hỏi Etsy, value = câu trả lời. */
+export interface OrderPersonalization {
+  /** Nhãn câu hỏi (vd "Personalization", "Back Side", "Your Photo"). */
+  label: string;
+  /** Câu trả lời của khách (giữ xuống dòng để render multi-line). */
+  value: string;
+}
+
 /** 1 dòng sản phẩm trong đơn (data.transactions[]). */
 export interface OrderTransaction {
   transactionId: number;
@@ -280,8 +288,11 @@ export interface OrderTransaction {
   quantity: number;
   /** Các variation thường (Size/Color/Style…), KHÔNG gồm Personalization. */
   variations: { property: string; value: string }[];
-  /** Nội dung Personalization của khách (giữ xuống dòng để render multi-line). */
-  personalization: string;
+  /**
+   * TẤT CẢ dòng personalization của khách (1 đơn có thể nhiều: "Personalization",
+   * "Back Side", "Your Photo"…). Giữ nguyên thứ tự & nhãn — KHÔNG gộp/ghi đè.
+   */
+  personalizations: OrderPersonalization[];
   /** Ảnh khách upload ("Your Photo") — enrich từ personalization_files theo transaction_id. */
   personalizationFiles: PersonalizationFile[];
 }

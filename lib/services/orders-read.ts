@@ -16,6 +16,7 @@ import type {
   EtsyOrderDoc,
   OrderAddress,
   OrderListItem,
+  OrderPersonalization,
   OrderShipping,
   OrderTab,
   OrderTransaction,
@@ -69,13 +70,18 @@ function resolveOrderShop(data: unknown, shopIdToName: Map<number, string>): str
   return firstString(data, ["shop_name"]);
 }
 
-/** Tách variations: gom dòng "Personalization" thành 1 chuỗi multi-line, còn lại là option. */
+/**
+ * Tách variations: mỗi variation kiểu personalization là 1 dòng có nhãn riêng
+ * (1 transaction có thể có NHIỀU: "Personalization", "Back Side", "Your Photo"…),
+ * còn lại là option thường. KHÔNG gộp/ghi đè — trước đây gán đè nên chỉ dòng cuối
+ * ("Your Photo: 1 file") sống sót, nuốt mất text thật của khách.
+ */
 function mapTransactions(data: unknown): OrderTransaction[] {
   const raw = getPath(data, "transactions");
   if (!Array.isArray(raw)) return [];
   return raw.map((t): OrderTransaction => {
     const variations: { property: string; value: string }[] = [];
-    let personalization = "";
+    const personalizations: OrderPersonalization[] = [];
     const vraw = getPath(t, "variations");
     if (Array.isArray(vraw)) {
       for (const v of vraw) {
@@ -85,7 +91,7 @@ function mapTransactions(data: unknown): OrderTransaction[] {
         const isPersonalization =
           property.toLowerCase() === "personalization" || type.endsWith("Variation_Personalization");
         if (isPersonalization) {
-          personalization = value;
+          if (value) personalizations.push({ label: property || "Personalization", value });
         } else if (property || value) {
           variations.push({ property, value });
         }
@@ -98,7 +104,7 @@ function mapTransactions(data: unknown): OrderTransaction[] {
       image: firstString(t, ["product.image_url_75x75", "image_url_75x75", "image"]),
       quantity: asNumber(getPath(t, "quantity")) ?? 0,
       variations,
-      personalization,
+      personalizations,
       // Ảnh khách upload gắn sau bằng attachPersonalization (đọc personalization_files).
       personalizationFiles: [],
     };
