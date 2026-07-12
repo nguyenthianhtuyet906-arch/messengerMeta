@@ -240,8 +240,8 @@ export function ConversationView({
         staleTime: Infinity,
       });
       setAiResult(data);
-    } catch (err) {
-      alert(`Gợi ý AI thất bại: ${(err as Error).message}`);
+    } catch {
+      // Gợi ý AI thất bại: bỏ qua, không hiển thị thông báo cho người dùng.
     } finally {
       setAiLoading(false);
     }
