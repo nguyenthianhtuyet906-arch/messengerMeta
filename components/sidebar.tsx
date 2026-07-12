@@ -44,7 +44,7 @@ const navItems = [
   { href: "/", label: "Dashboard", icon: LayoutDashboard },
   { href: "/messages", label: "Messenger", icon: MessageCircle },
   // { href: "/board", label: "Bảng xử lý", icon: LayoutGrid },
-  // { href: "/orders", label: "Orders", icon: ShoppingBag },
+  { href: "/orders", label: "Orders", icon: ShoppingBag },
   { href: "/tracking", label: "Tracking", icon: Truck },
 ]
 
