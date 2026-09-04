@@ -55,6 +55,76 @@ export interface TrackingJob {
   updated_at: Date;
 }
 
+/* ---- Lịch sử add tracking (trang /tracking → tab "Lịch sử") ----
+ *
+ * Contract CHUNG cho luồng list lịch sử job. Cả 4 tầng dùng chung các type dưới:
+ *   service (tracking.ts) trả `TrackingHistoryResponse`
+ *     → route GET /api/tracking/jobs `json()` nguyên shape đó
+ *       → hook useTrackingHistory cast `as TrackingHistoryResponse`
+ *         → component History đọc `items[].` + phân trang.
+ * Xem chi tiết 1 lượt: KHÔNG có trong list — bấm vào item gọi lại
+ * GET /api/tracking/jobs/[id] (đã có) → `SerializedJob`.
+ */
+
+/**
+ * Tóm tắt kết quả 1 job để hiển thị ở dòng lịch sử (không kèm mảng orders dài).
+ * Tất cả tính trên các đơn đã gửi add (selected = true), khớp logic summary của JobCard.
+ */
+export interface TrackingJobCounts {
+  /** Tổng số đơn trong job (orders.length) — hiển thị "N đơn". */
+  total: number;
+  /** Số đơn đã chọn để add (selected = true). */
+  selected: number;
+  /** verify === "VERIFIED". */
+  verified: number;
+  /** verify === "MISMATCH". */
+  mismatch: number;
+  /** add_status === "FAILED". */
+  failed: number;
+  /** verify === "SKIPPED" và add_status !== "FAILED" (bỏ qua xác minh). */
+  skipped: number;
+}
+
+/**
+ * 1 dòng lịch sử: bản tóm tắt 1 TrackingJob (KHÔNG kèm orders).
+ * created_at/updated_at là ISO string (đã qua JSON ở ranh giới API↔hook).
+ */
+export interface TrackingHistoryItem {
+  /** _id.toHexString() — dùng làm key list + param GET /api/tracking/jobs/[id]. */
+  id: string;
+  shop_name: string;
+  shop_id: number | null;
+  sender_email: string;
+  phase: TrackingPhase;
+  /** Lỗi PRECHECK/VERIFY nếu có (job dừng sớm) → hiển thị badge "Lỗi". */
+  error?: string;
+  counts: TrackingJobCounts;
+  /** ISO 8601 (Date.toISOString()). */
+  created_at: string;
+  updated_at: string;
+}
+
+/** Query params đọc từ URL của GET /api/tracking/jobs (list lịch sử). */
+export interface TrackingHistoryQuery {
+  /** Search khớp order_id HOẶC tracking_number trong orders[]. Rỗng = không lọc. */
+  q: string;
+  /** Lọc theo shop_name (khớp chính xác). Rỗng = tất cả shop. */
+  shop: string;
+  /** Trang 1-based. */
+  page: number;
+  /** Số item / trang. */
+  limit: number;
+}
+
+/** Phản hồi GET /api/tracking/jobs (phân trang offset/page, sort created_at desc). */
+export interface TrackingHistoryResponse {
+  items: TrackingHistoryItem[];
+  page: number;
+  pageSize: number;
+  total: number;
+  totalPages: number;
+}
+
 /** Input mỗi dòng từ UI trước khi map carrier. */
 export interface TrackingOrderInput {
   order_id: string;
@@ -74,43 +144,33 @@ export interface ShipmentResultItem {
 }
 
 /**
- * Carrier Etsy phổ biến (theo Meta-extension/docs/tracking-api.md).
- * id -1 = Other (kèm other_carrier).
+ * Tên bảng id CŨ (đã bỏ hẳn — id tự đoán, sai với Etsy: vd 6 tưởng Australia Post
+ * nhưng Etsy hiểu là Canada Post; 5 bị Etsy nuốt mất tracking).
+ * Chỉ để HIỂN THỊ đơn lịch sử đã lưu các id này = tên NGƯỜI DÙNG ĐÃ NHẬP lúc đó.
  */
-export const CARRIERS: { id: number; name: string; aliases?: string[] }[] = [
-  { id: 1, name: "USPS" },
-  { id: 2, name: "FedEx" },
-  { id: 3, name: "UPS" },
-  { id: 4, name: "DHL" },
-  { id: 5, name: "Canada Post" },
-  { id: 6, name: "Australia Post", aliases: ["AusPost"] },
-  { id: 7, name: "Royal Mail" },
-  { id: 8, name: "Deutsche Post", aliases: ["DHL Deutsche Post"] },
-  { id: 9, name: "La Poste" },
-  { id: 10, name: "Japan Post" },
-];
+const LEGACY_CARRIER_NAMES: Record<number, string> = {
+  1: "USPS",
+  2: "FedEx",
+  3: "UPS",
+  4: "DHL",
+  5: "Canada Post",
+  6: "Australia Post",
+  7: "Royal Mail",
+  8: "Deutsche Post",
+  9: "La Poste",
+  10: "Japan Post",
+};
 
-function norm(s: string): string {
-  return s.trim().toLowerCase().replace(/\s+/g, " ");
-}
-
-/** Tên carrier để hiển thị: known id → tên chuẩn; -1 → other_carrier (nếu có). */
+/** Tên carrier để hiển thị: -1 → other_carrier; id cũ trong lịch sử → tên đã nhập lúc đó. */
 export function carrierLabel(carrier: number, other_carrier: string): string {
   if (carrier === -1) return other_carrier.trim();
-  return CARRIERS.find((c) => c.id === carrier)?.name ?? other_carrier.trim();
+  return LEGACY_CARRIER_NAMES[carrier] ?? other_carrier.trim();
 }
 
 /**
- * Map tên carrier người dùng nhập sang { carrier, other_carrier }.
- * Khớp tên/alias known → carrier id, other_carrier rỗng.
- * Không khớp → carrier = -1, other_carrier = tên gốc (Etsy "Other").
+ * KHÔNG map tên → id nữa: Etsy nhận nguyên văn tên người dùng nhập qua
+ * other_carrier (carrier = -1). Đảm bảo cái gì nhập vào là cái đó lên Etsy.
  */
 export function resolveCarrier(input: string): { carrier: number; other_carrier: string } {
-  const n = norm(input);
-  if (!n) return { carrier: -1, other_carrier: "" };
-  for (const c of CARRIERS) {
-    if (norm(c.name) === n) return { carrier: c.id, other_carrier: "" };
-    if (c.aliases?.some((a) => norm(a) === n)) return { carrier: c.id, other_carrier: "" };
-  }
   return { carrier: -1, other_carrier: input.trim() };
 }
