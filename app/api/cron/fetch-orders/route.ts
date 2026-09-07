@@ -18,8 +18,8 @@ function isoDaysAgo(days: number): string {
 
 /**
  * GET /api/cron/fetch-orders — tự động fetch đơn cho TẤT CẢ shop đang online.
- * Gọi bởi Vercel Cron (mỗi 2 tiếng, xem vercel.json). Bảo vệ bằng CRON_SECRET:
- * Vercel gửi header `Authorization: Bearer <CRON_SECRET>`.
+ * Gọi thủ công / bởi cron ngoài. Bảo vệ bằng CRON_SECRET:
+ * Caller phải gửi header `Authorization: Bearer <CRON_SECRET>`.
  *
  * Với mỗi shop online → publish "fetch-orders" (fire-and-forget) cửa sổ 3 ngày,
  * y hệt nút "Fetch orders" thủ công. Shop offline được bỏ qua (extension không nghe).
